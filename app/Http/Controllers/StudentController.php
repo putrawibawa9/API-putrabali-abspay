@@ -12,7 +12,9 @@ class StudentController extends Controller
      */
     public function index()
     {
-        //
+        // Get all students from the database
+        $students = Student::all();
+        return response()->json($students);
     }
 
     /**
@@ -20,7 +22,7 @@ class StudentController extends Controller
      */
     public function create()
     {
-        //
+ 
     }
 
     /**
@@ -28,7 +30,17 @@ class StudentController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        // add a new student to the database
+        $student = new Student();
+        $student->nis = $request->nis;
+        $student->name = $request->name;
+        $student->wa_number = $request->wa_number;
+        $student->gender = $request->gender;
+        $student->school = $request->school;
+        $student->enroll_date = $request->enroll_date;
+        $student->save();
+
+        return response()->json($student);
     }
 
     /**
@@ -36,7 +48,7 @@ class StudentController extends Controller
      */
     public function show(Student $student)
     {
-        //
+        return response()->json($student);
     }
 
     /**
@@ -52,7 +64,15 @@ class StudentController extends Controller
      */
     public function update(Request $request, Student $student)
     {
-        //
+        // update a student in the database
+        $student->nis = $request->nis;
+        $student->name = $request->name;
+        $student->wa_number = $request->wa_number;
+        $student->gender = $request->gender;
+        $student->school = $request->school;
+        $student->enroll_date = $request->enroll_date;
+        $student->save();
+        return response()->json($student);
     }
 
     /**
@@ -60,6 +80,7 @@ class StudentController extends Controller
      */
     public function destroy(Student $student)
     {
-        //
+        // delete a student from the database
+        $student->delete();
     }
 }
