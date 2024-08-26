@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->integer('payment_rate');
+            $table->string('type');
             $table->timestamps();
         });
     }
