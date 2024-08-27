@@ -18,9 +18,9 @@ class Student extends Model
         'enroll_date',
     ];
 
-    public function classes()
+    public function courses()
     {
-        return $this->belongsToMany(Course::class, 'student_classes')
+        return $this->belongsToMany(Course::class, 'students_courses')
                     ->withPivot('custom_payment_rate')
                     ->withTimestamps();
     }

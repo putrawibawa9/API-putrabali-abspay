@@ -28,7 +28,20 @@ class PaymentController extends Controller
      */
     public function store(Request $request)
     {
-        //
+
+        // check if the student has paid the specific class for the month
+        $payment = Payment::where('student_id', $request->student_id)->where('course_id', $request->course_id)->where('payment_month', $request->payment_month)->first();
+        if ($payment) {
+            return response()->json(['message' => 'Student has already paid for this month']);
+        }
+        // Add new payment to the database
+        $payment = new Payment();
+        $payment->student_id = $request->student_id;
+        $payment->course_id = $request->course_id;
+        $payment->payment_date = $request->payment_date;
+        $payment->payment_month = $request->payment_month;
+        $payment->payment_amount = $request->payment_amount;
+        $payment->save();
     }
 
     /**

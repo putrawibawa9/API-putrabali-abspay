@@ -18,6 +18,7 @@ class CourseFactory extends Factory
     {
         return [
             'name' => $this->faker->word,
+            'stand_for' => $this->faker->word,
             'payment_rate' => $this->faker->numberBetween(1000, 10000),
             'type'=> $this->faker->randomElement(['English', 'Mapel']),
         ];

@@ -12,7 +12,9 @@ class CourseController extends Controller
      */
     public function index()
     {
-        //
+        //add new course
+        $courses = Course::all();
+        return response()->json($courses);
     }
 
     /**
@@ -28,7 +30,15 @@ class CourseController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        // Add new course to the database
+        $course = new Course();
+        $course->name = $request->name;
+        $course->stand_for = $request->stand_for;
+        $course->payment_rate = $request->payment_rate;
+        $course->type = $request->type;
+        $course->save();
+
+        return response()->json($course);
     }
 
     /**
@@ -36,7 +46,7 @@ class CourseController extends Controller
      */
     public function show(Course $course)
     {
-        //
+        return response()->json($course);
     }
 
     /**
@@ -60,6 +70,7 @@ class CourseController extends Controller
      */
     public function destroy(Course $course)
     {
-        //
+        // delete a course from the database
+        $course->delete();
     }
 }
