@@ -9,14 +9,19 @@ class Course extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['name', 'stand_for', 'payment_rate', 'type'];
-    public function students()
+    protected $fillable = ['name', 'alias', 'payment_rate', 'type'];
+    public function meetings()
     {
-        return $this->belongsToMany(Student::class, 'student_classes')
-                    ->withPivot('custom_payment_rate')
-                    ->withTimestamps();
+        return $this->hasMany(Meeting::class);
     }
 
+    // One course has many student enrollments
+    public function studentsCourses()
+    {
+        return $this->hasMany(StudentCourse::class);
+    }
+
+    // One course has many payments
     public function payments()
     {
         return $this->hasMany(Payment::class);

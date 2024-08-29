@@ -18,13 +18,13 @@ class Student extends Model
         'enroll_date',
     ];
 
-    public function courses()
+     // One student has many student enrollments
+    public function studentsCourses()
     {
-        return $this->belongsToMany(Course::class, 'students_courses')
-                    ->withPivot('custom_payment_rate')
-                    ->withTimestamps();
+        return $this->hasMany(StudentCourse::class);
     }
 
+    // One student has many payments
     public function payments()
     {
         return $this->hasMany(Payment::class);

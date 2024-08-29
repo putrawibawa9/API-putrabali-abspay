@@ -9,11 +9,13 @@ class Payment extends Model
 {
     use HasFactory;
 
-     public function student()
+    // A payment belongs to a student
+    public function student()
     {
         return $this->belongsTo(Student::class);
     }
 
+    // A payment belongs to a course
     public function course()
     {
         return $this->belongsTo(Course::class);
