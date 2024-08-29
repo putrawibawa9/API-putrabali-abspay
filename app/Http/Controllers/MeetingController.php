@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Absence;
+use App\Models\Meeting;
 use Illuminate\Http\Request;
 
-class AbsenceController extends Controller
+class MeetingController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -26,34 +26,39 @@ class AbsenceController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-   public function store(Request $request)
+    public function store(Request $request)
     {
         // Validate the request data
         $validatedData = $request->validate([
-            'student_id' => 'required|integer|exists:students,id',
-            'meeting_id' => 'required|integer|exists:meetings,id',
-            'status' => 'required|string|in:present,absent',
+            'course_id' => 'required|integer|exists:courses,id',
+            'day' => 'required|string',
+            'date' => 'required|date',
+            'time' => 'required|string',
+            'teacher_id' => 'required|integer|exists:teachers,id',
         ]);
 
-        // Create the attendance record
-        $absence = Absence::create([
-            'student_id' => $validatedData['student_id'],
-            'meeting_id' => $validatedData['meeting_id'],
-            'status' => $validatedData['status'],
+        // Create the new meeting record
+        $meeting = Meeting::create([
+            'course_id' => $validatedData['course_id'],
+            'day' => $validatedData['day'],
+            'date' => $validatedData['date'],
+            'time' => $validatedData['time'],
+            'teacher_id' => $validatedData['teacher_id'],
         ]);
 
         // Return a response indicating success
         return response()->json([
             'success' => true,
-            'message' => 'Attendance recorded successfully',
-            'data' => $absence
+            'message' => 'Meeting created successfully',
+            'data' => $meeting
         ], 201);
+    
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(Absence $absence)
+    public function show(string $id)
     {
         //
     }
@@ -61,7 +66,7 @@ class AbsenceController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Absence $absence)
+    public function edit(string $id)
     {
         //
     }
@@ -69,7 +74,7 @@ class AbsenceController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Absence $absence)
+    public function update(Request $request, string $id)
     {
         //
     }
@@ -77,7 +82,7 @@ class AbsenceController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Absence $absence)
+    public function destroy(string $id)
     {
         //
     }

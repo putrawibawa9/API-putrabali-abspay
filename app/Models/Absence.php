@@ -9,7 +9,7 @@ class Absence extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['students_courses_id', 'day', 'date', 'time'];
+    protected $fillable = ['student_course_id', 'day', 'date', 'time'];
 
 
       // An absence belongs to a student_course

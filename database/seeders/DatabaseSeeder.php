@@ -2,7 +2,9 @@
 
 namespace Database\Seeders;
 
+use App\Models\Absence;
 use App\Models\Course;
+use App\Models\Meeting;
 use App\Models\Payment;
 use App\Models\Student;
 use App\Models\StudentCourse;
@@ -17,9 +19,17 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        Student::factory(10)->create();
-        Course::factory(6)->create();
-        Payment::factory(20)->create();
-        StudentCourse::factory(10)->create();
+        // seed the student Seeder
+        $this->call([
+
+            StudentSeeder::class,
+            CourseSeeder::class,
+            TeacherSeeder::class,
+            PaymentSeeder::class,
+            StudentCourseSeeder::class,
+            MeetingSeeder::class,
+            AbsenceSeeder::class,
+            ]
+        );
     }
 }

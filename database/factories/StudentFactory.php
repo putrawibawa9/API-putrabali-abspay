@@ -17,12 +17,22 @@ class StudentFactory extends Factory
     public function definition(): array
     {
         return [
-               'nis' => $this->faker->unique()->numberBetween(100000, 999999),
-                'name' => $this->faker->name,
-                'wa_number' => $this->faker->phoneNumber,
-                'gender' => $this->faker->randomElement(['Male', 'Female']),
-                'school' => $this->faker->word,
-                'enroll_date' => $this->faker->date,
+            [
+                'nis' => "1234567890",
+                'name' => "I Gede Putra Wibawa",
+                'wa_number' => "081234567890",
+                'gender' => "male",
+                'school' => "SMPN 1 Denpasar",
+                'enroll_date' => "2021-01-01"
+            ],
+            [
+                'nis' => "0987654321",
+                'name' => "Ni Luh Putu Ayu",
+                'wa_number' => "081234567891",
+                'gender' => "female",
+                'school' => "SMPN 1 Denpasar",
+                'enroll_date' => "2021-01-03"
+            ]
         ];
     }
 }
