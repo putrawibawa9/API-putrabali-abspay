@@ -47,8 +47,8 @@ class CourseController extends Controller
     public function show($alias)
     {
         // show course and students in the course only
-        $course = Course::where('alias', $alias)->with('studentsCourses')->first();
-        return response()->json($course->student);
+        $course = Course::where('alias', $alias)->with('students')->first();
+        return response()->json($course);
     }
 
     /**
