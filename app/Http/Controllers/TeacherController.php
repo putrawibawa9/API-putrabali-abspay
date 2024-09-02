@@ -12,7 +12,8 @@ class TeacherController extends Controller
      */
     public function index()
     {
-        //
+        $teachers = Teacher::all();
+        return response()->json($teachers);
     }
 
     /**
@@ -28,15 +29,21 @@ class TeacherController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $teacher = new Teacher();
+        $teacher->name = $request->name;
+        $teacher->alias = $request->alias;
+        $teacher->save();
+        return response()->json($teacher);
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(Teacher $teacher)
+    public function show($alias)
     {
-        //
+        // check the name based on aliases
+        $teacher = Teacher::where('alias', $alias)->first();
+        return response()->json($teacher);
     }
 
     /**
@@ -52,14 +59,20 @@ class TeacherController extends Controller
      */
     public function update(Request $request, Teacher $teacher)
     {
-        //
+        // Update teacher
+        $teacher->name = $request->name;
+        $teacher->alias = $request->alias;
+        $teacher->save();
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Teacher $teacher)
+    public function destroy($alias)
     {
-        //
+        // delete a teacher from the database
+        $teacher = Teacher::where('alias', $alias)->first();
+        $teacher->delete();
+        
     }
 }

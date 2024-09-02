@@ -12,8 +12,8 @@ class StudentController extends Controller
      */
     public function index()
     {
-        // Get all students from the database
-        $students = Student::all();
+        // Get all students from the database descending by id
+        $students = Student::orderBy('id', 'desc')->get();
         return response()->json($students);
     }
 
@@ -31,8 +31,9 @@ class StudentController extends Controller
     public function store(Request $request)
     {
         // add a new student to the database
+        $latestNis = Student::max('nis');
         $student = new Student();
-        $student->nis = $request->nis;
+        $student->nis = $latestNis ? $latestNis + 1 : 1001;
         $student->name = $request->name;
         $student->wa_number = $request->wa_number;
         $student->gender = $request->gender;

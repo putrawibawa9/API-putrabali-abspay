@@ -44,9 +44,11 @@ class CourseController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Course $course)
+    public function show($alias)
     {
-        return response()->json($course);
+        // show course and students in the course only
+        $course = Course::where('alias', $alias)->with('studentsCourses')->first();
+        return response()->json($course->student);
     }
 
     /**

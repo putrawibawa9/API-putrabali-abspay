@@ -11,6 +11,8 @@ class StudentCourse extends Model
 
     protected $table = 'students_courses';
 
+    
+
   // A student_course belongs to a student
     public function student()
     {

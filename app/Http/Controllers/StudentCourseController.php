@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Course;
 use App\Models\Student;
 use Illuminate\Http\Request;
 use App\Models\StudentCourse;
@@ -11,10 +12,18 @@ class StudentCourseController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
-    {
-        
-    }
+  public function index()
+{
+    $students = Student::all()->map(function ($student) {
+        return ['id' => $student->id, 'name' => $student->name];
+    });
+
+    $courses = Course::all()->map(function ($course) {
+        return ['id' => $course->id, 'name' => $course->name];
+    });
+
+    return response()->json(['students' => $students, 'courses' => $courses]);
+}
 
     /**
      * Show the form for creating a new resource.
