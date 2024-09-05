@@ -57,12 +57,40 @@ class StudentCourseController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(StudentCourse $studentCourse)
-    {
-        //show specific student class
-        $students = Student::all();
-        return response()->json($students);
+   public function show($id)
+{
+    // Fetch the student with related courses and custom payment rate
+    $studentCourses = StudentCourse::with(['course' => function ($query) {
+        // Fetch the course details
+        $query->select('id', 'name', 'payment_rate');
+    }, 'student' => function ($query) {
+        // Fetch the student details
+        $query->select('id', 'name');
+    }])
+    ->where('student_id', $id)
+    ->get();
+
+    if ($studentCourses->isEmpty()) {
+        return response()->json(['error' => 'Student or courses not found'], 404);
     }
+
+    // Get the student's name
+    $studentName = $studentCourses->first()->student->name;
+
+    // Transform data to include student name, custom payment rate, and course details
+    $studentData = $studentCourses->map(function ($studentCourse) use ($studentName) {
+        return [
+            'student_name' => $studentName,
+            'course_id' => $studentCourse->course_id,
+            'course_name' => $studentCourse->course->name,
+            'payment_rate' => $studentCourse->course->payment_rate,
+            'custom_payment_rate' => $studentCourse->custom_payment_rate,
+        ];
+    });
+
+    return response()->json($studentData);
+}
+
 
     /**
      * Show the form for editing the specified resource.
@@ -86,5 +114,15 @@ class StudentCourseController extends Controller
     public function destroy(StudentCourse $studentClass)
     {
         //
+    }
+
+    public function allEnrolledStudents()
+    {
+        // Fetch all students with their enrolled courses but without duplicates
+        $students = StudentCourse::with('student')
+            ->select('student_id')
+            ->distinct()
+            ->get();
+            return response()->json($students);
     }
 }

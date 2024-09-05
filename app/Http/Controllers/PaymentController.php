@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Payment;
+use App\Models\StudentCourse;
 use Illuminate\Http\Request;
 
 class PaymentController extends Controller
@@ -12,7 +13,12 @@ class PaymentController extends Controller
      */
     public function index()
     {
-        //
+        // show all students that is enrolled in a class but
+        $students = StudentCourse::with('student')
+    ->select('student_id')
+    ->distinct()
+    ->get();
+        return response()->json($students);
     }
 
     /**
@@ -38,7 +44,7 @@ class PaymentController extends Controller
         $payment = new Payment();
         $payment->student_id = $request->student_id;
         $payment->course_id = $request->course_id;
-        $payment->payment_date = $request->payment_date;
+        $payment->date = $request->date;
         $payment->payment_month = $request->payment_month;
         $payment->payment_amount = $request->payment_amount;
         $payment->save();
@@ -47,9 +53,10 @@ class PaymentController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Payment $payment)
+    public function show($student_id)
     {
-        //
+        // check the course that the student in
+        $payment = Payment::where('student_id', $student_id)->with('course')->get();
     }
 
     /**

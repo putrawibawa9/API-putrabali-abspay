@@ -15,13 +15,12 @@ class StudentCourseSeeder extends Seeder
     {
         StudentCourse::create([
             'student_id' => 1,
-            'course_id' => 6,
-            'custom_payment_rate'=> 70000,
+            'course_id' => 1,
         ]);
         StudentCourse::create([
-    'student_id' => 2,
-    'course_id' => 4,
-    'custom_payment_rate' => 80000,
+    'student_id' => 1,
+    'course_id' => 2,
+    'custom_payment_rate' => 90000,
 ]);
 
 StudentCourse::create([

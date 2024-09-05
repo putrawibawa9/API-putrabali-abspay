@@ -9,7 +9,7 @@ class StudentSeeder extends Seeder
     public function run()
     {
         Student::create([
-            'nis' => '1234567890',
+            'nis' => '220030223',
             'name' => 'I Gede Putra Wibawa',
             'wa_number' => '081234567890',
             'gender' => 'male',

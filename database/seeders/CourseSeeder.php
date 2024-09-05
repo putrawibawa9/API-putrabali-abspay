@@ -21,10 +21,10 @@ class CourseSeeder extends Seeder
         ]);
 
         Course::create([
-            'name' => '6 B English',
-            'alias' => '6srb',
-            'payment_rate' => 80000,
-            'type' => 'English',
+            'name' => '6 B Mapel',
+            'alias' => '6bsrb',
+            'payment_rate' => 100000,
+            'type' => 'Mapel',
         ]);
 
         Course::create([
