@@ -81,6 +81,7 @@ class ScheduleController extends Controller
     }
 
     $courses = $student->courses;
+    $studentName = $student->name;
     $schedules = [];
 
     foreach ($courses as $course) {
@@ -90,7 +91,7 @@ class ScheduleController extends Controller
         ];
     }
 
-    return response()->json(['schedules' => $schedules]);
+    return response()->json(['schedules' => $schedules, 'studentName' => $studentName ],);
 }
 
 public function getTeacherSchedule($teacherId)
