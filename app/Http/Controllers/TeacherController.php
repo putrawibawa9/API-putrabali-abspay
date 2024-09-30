@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\TeacherRequest;
 use App\Models\Teacher;
 use Illuminate\Http\Request;
 
@@ -27,13 +28,13 @@ class TeacherController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(TeacherRequest $request)
     {
         $teacher = new Teacher();
         $teacher->name = $request->name;
         $teacher->alias = $request->alias;
         $teacher->save();
-        return response()->json($teacher);
+        return response(null, 201);
     }
 
     /**
@@ -57,7 +58,7 @@ class TeacherController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Teacher $teacher)
+    public function update(TeacherRequest $request, Teacher $teacher)
     {
         // Update teacher
         $teacher->name = $request->name;

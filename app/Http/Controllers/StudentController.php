@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StudentRequest;
 use App\Models\Student;
 use Illuminate\Http\Request;
 
@@ -28,7 +29,7 @@ class StudentController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(StudentRequest $request)
     {
         // add a new student to the database
         $latestNis = Student::max('nis');
@@ -65,10 +66,9 @@ class StudentController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Student $student)
+    public function update(StudentRequest $request, Student $student)
     {
         // update a student in the database
-        $student->nis = $request->nis;
         $student->name = $request->name;
         $student->wa_number = $request->wa_number;
         $student->gender = $request->gender;
