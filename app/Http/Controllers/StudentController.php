@@ -41,7 +41,7 @@ class StudentController extends Controller
         $student->enroll_date = $request->enroll_date;
         $student->save();
 
-        return response()->json($student);
+        return response(null, 201);
     }
 
     /**
