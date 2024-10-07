@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\CourseRequest;
 use App\Models\Course;
 use Illuminate\Http\Request;
 
@@ -28,26 +29,30 @@ class CourseController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(CourseRequest $request)
     {
         // Add new course to the database
         $course = new Course();
         $course->name = $request->name;
-        $course->stand_for = $request->stand_for;
+        $course->alias = $request->alias;
         $course->payment_rate = $request->payment_rate;
         $course->type = $request->type;
         $course->save();
 
-        return response()->json($course);
+        return response(null, 201);
     }
 
     /**
      * Display the specified resource.
      */
-    public function show($alias)
+    public function show(Course $course)
     {
-        // show course and students in the course only
-        $course = Course::where('alias', $alias)->with('students')->first();
+        // check if the course is available
+        if (!$course) {
+            return response(null, 404);
+        }
+        // check the course and its student if available
+        $course = Course::where('id', $course->id)->with('students')->first();
         return response()->json($course);
     }
 
@@ -62,9 +67,14 @@ class CourseController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Course $course)
+    public function update(CourseRequest $request, Course $course)
     {
-        //
+        // update a course in the database
+        $course->name = $request->name;
+        $course->alias = $request->alias;
+        $course->payment_rate = $request->payment_rate;
+        $course->type = $request->type;
+        $course->save();
     }
 
     /**

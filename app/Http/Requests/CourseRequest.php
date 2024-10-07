@@ -9,20 +9,19 @@ class CourseRequest extends FormRequest
     /**
      * Determine if the user is authorized to make this request.
      */
-    public function authorize(): bool
+    public function authorize()
     {
-        return false;
+        // Set to true if you want to allow this form request to be used
+        return true;
     }
 
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
-     */
-    public function rules(): array
+    public function rules()
     {
         return [
-            //
+            'name' => 'required|string|max:255|unique:courses,name',
+            'alias' => 'nullable|string|max:255|unique:courses,alias',
+            'payment_rate' => 'required|numeric|min:0',
+            'type' => 'required|string|in:English,Mapel', 
         ];
     }
 }

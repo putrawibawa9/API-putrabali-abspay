@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\MeetingRequest;
+use App\Http\Resources\MeetingResource;
 use App\Models\Meeting;
 use Illuminate\Http\Request;
 
@@ -12,7 +14,8 @@ class MeetingController extends Controller
      */
     public function index()
     {
-        //
+         $meetings = Meeting::with('course', 'teacher')->get();  // Ensure to load course and teacher relationships
+        return MeetingResource::collection($meetings);
     }
 
     /**
@@ -26,33 +29,17 @@ class MeetingController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(MeetingRequest $request)
     {
-        // Validate the request data
-        $validatedData = $request->validate([
-            'course_id' => 'required|integer|exists:courses,id',
-            'day' => 'required|string',
-            'date' => 'required|date',
-            'time' => 'required|string',
-            'teacher_id' => 'required|integer|exists:teachers,id',
-        ]);
-
         // Create the new meeting record
-        $meeting = Meeting::create([
-            'course_id' => $validatedData['course_id'],
-            'day' => $validatedData['day'],
-            'date' => $validatedData['date'],
-            'time' => $validatedData['time'],
-            'teacher_id' => $validatedData['teacher_id'],
+        Meeting::create([
+            'course_id' => $request['course_id'],
+            'day' => $request['day'],
+            'date' => $request['date'],
+            'time' => $request['time'],
+            'teacher_id' => $request['teacher_id'],
         ]);
-
-        // Return a response indicating success
-        return response()->json([
-            'success' => true,
-            'message' => 'Meeting created successfully',
-            'data' => $meeting
-        ], 201);
-    
+        return response(null, 201);
     }
 
     /**

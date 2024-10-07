@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StudentCourseRequest;
 use App\Models\Course;
 use App\Models\Student;
 use Illuminate\Http\Request;
@@ -36,21 +37,27 @@ class StudentCourseController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(StudentCourseRequest $request)
     {
+       // Find the student by ID
+    $student = Student::findOrFail($request->student_id);
 
-        // check if student is already enrolled in the class
-        $studentCourse = StudentCourse::where('student_id', $request->student_id)->where('course_id', $request->course_id)->first();
-        if ($studentCourse) {
-            return response()->json(['message' => 'Student already enrolled in this class']);
-        }
-        //enroll student to a class
+    // Get the class they are trying to enroll in
+    $course = Course::findOrFail($request->course_id);
+
+    $existingClasses = $student->courses()->where('type', $course->type)->count();
+
+    if ($existingClasses >= 1) {
+        return response()->json([
+            'message' => "The student is already enrolled in a $course->type class and cannot enroll in another one."
+        ], 422);
+    }
         $studentCourse = new StudentCourse();
         $studentCourse->student_id = $request->student_id;
         $studentCourse->course_id = $request->course_id;
         $studentCourse->custom_payment_rate = $request->custom_payment_rate;
         $studentCourse->save();
-        return response()->json($studentCourse);
+        return response(null, 201);
 
     }
 
@@ -111,9 +118,9 @@ class StudentCourseController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(StudentCourse $studentClass)
+    public function destroy(StudentCourse $id)
     {
-        //
+        $id->delete();
     }
 
     public function allEnrolledStudents()

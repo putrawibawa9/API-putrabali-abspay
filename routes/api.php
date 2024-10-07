@@ -22,6 +22,7 @@ Route::prefix('v1')->group(function () {
         Route::get('/students-courses', [StudentCourseController::class, 'allEnrolledStudents']);
         Route::post('/enrollments', [StudentCourseController::class, 'store']);
         Route::get('/enrollments', [StudentCourseController::class, 'index']);
+        Route::delete('/dropouts/{id}', [StudentCourseController::class, 'destroy']);
         Route::resource('/payments', PaymentController::class);
         Route::resource('/meetings', MeetingController::class);
         Route::resource('/absence', AbsenceController::class);

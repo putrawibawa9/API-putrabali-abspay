@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\PaymentRequest;
 use App\Models\Payment;
 use App\Models\StudentCourse;
 use Illuminate\Http\Request;
@@ -32,7 +33,7 @@ class PaymentController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(PaymentRequest $request)
     {
 
         // check if the student has paid the specific class for the month
@@ -44,7 +45,6 @@ class PaymentController extends Controller
         $payment = new Payment();
         $payment->student_id = $request->student_id;
         $payment->course_id = $request->course_id;
-        $payment->date = $request->date;
         $payment->payment_month = $request->payment_month;
         $payment->payment_amount = $request->payment_amount;
         $payment->save();
