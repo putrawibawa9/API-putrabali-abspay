@@ -13,8 +13,8 @@ class StudentController extends Controller
      */
     public function index()
     {
-        // Get all students from the database descending by id
-        $students = Student::orderBy('id', 'desc')->get();
+        // Get all students from the database based on their alphabitic order name
+        $students = Student::orderBy('name')->get();
         return response()->json($students);
     }
 
@@ -66,17 +66,15 @@ class StudentController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(StudentRequest $request, Student $student)
-    {
-        // update a student in the database
-        $student->name = $request->name;
-        $student->wa_number = $request->wa_number;
-        $student->gender = $request->gender;
-        $student->school = $request->school;
-        $student->enroll_date = $request->enroll_date;
-        $student->save();
-        return response()->json($student);
-    }
+public function update(StudentRequest $request, Student $student)
+{
+    $validated = $request->validated();
+    // update the student in the database
+    $student->update($validated);
+    return response(null, 204);
+}
+
+
 
     /**
      * Remove the specified resource from storage.

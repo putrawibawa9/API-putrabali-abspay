@@ -20,17 +20,52 @@ class StudentRequest extends FormRequest
      *
      * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
      */
-     public function rules(): array
-    {
-        return [
-            'name' => 'required|string|max:255|unique:students,name', // Check for unique name
-            'wa_number' => 'required|string|regex:/^\d+$/|max:15|unique:students,wa_number', // Check for unique WhatsApp number
-            'gender' => 'required|string|in:Male,Female', // Must be 'Male' or 'Female'
-            'school' => 'required|string|max:255', // Max length 255
-            'enroll_date' => 'required|date|date_format:Y-m-d', // Must be a valid date in Y-m-d format
-        ];
-    }
+public function rules()
+{
+    // Get the ID of the student being updated (if it's an update request)
+    $studentId = $this->student ? $this->student->id : null;
+
+    return [
+        'name' => [
+            'sometimes', // Only validate if present in the request
+            'required',
+            'string',
+            'max:255',
+            'unique:students,name,' . $studentId
+        ],
+        'wa_number' => [
+            'sometimes', // Only validate if present in the request
+            'required',
+            'string',
+            'regex:/^\d+$/',
+            'max:15',
+            'unique:students,wa_number,' . $studentId
+        ],
+        'gender' => [
+            'sometimes',
+            'required',
+            'string',
+            'in:Male,Female'
+        ],
+        'school' => [
+            'sometimes',
+            'required',
+            'string',
+            'max:255'
+        ],
+        'enroll_date' => [
+            'sometimes',
+            'required',
+            'date',
+            'date_format:Y-m-d'
+        ],
+    ];
+}
 
      
 
 }
+
+     
+
+

@@ -47,7 +47,9 @@ class MeetingController extends Controller
      */
     public function show(string $id)
     {
-        //
+        //  Fetch the meeting record by ID
+        $meeting = Meeting::with('course', 'teacher')->find($id);
+        return new MeetingResource($meeting);
     }
 
     /**
@@ -71,6 +73,22 @@ class MeetingController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        Meeting::destroy($id);
+        return response(null, 204);
+    }
+
+    public function recapMeetings($courseId, $month)
+    {
+        // Assuming $month is in the format 'YYYY-MM'
+        $meetingsCount = Meeting::where('course_id', $courseId)
+                                ->whereYear('date', substr($month, 0, 4))   // Extract year
+                                ->whereMonth('date', substr($month, 5, 2))  // Extract month
+                                ->count();
+
+        return response()->json([
+            'course_id' => $courseId,
+            'month' => $month,
+            'meetings_count' => $meetingsCount,
+        ]);
     }
 }

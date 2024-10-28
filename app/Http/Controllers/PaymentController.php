@@ -6,6 +6,7 @@ use App\Http\Requests\PaymentRequest;
 use App\Models\Payment;
 use App\Models\StudentCourse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class PaymentController extends Controller
 {
@@ -81,5 +82,28 @@ class PaymentController extends Controller
     public function destroy(Payment $payment)
     {
         //
+    }
+
+    public function recapStudentPayments($studentId, $year)
+    {
+        // Query to sum up payments for a specific student in the given year
+        $totalPayments = DB::table('payments')
+                            ->where('student_id', $studentId)
+                            ->whereYear('date', $year);
+        
+        dd($totalPayments);
+
+        return response()->json([
+            'student_id' => $studentId,
+            'year' => $year,
+            'total_payments' => $totalPayments,
+        ]);
+    }
+
+    public function getStudentPayment($id)
+    {
+        // Get the payment of a student
+        $payment = Payment::where('student_id', $id)->get();
+        return response()->json($payment);
     }
 }

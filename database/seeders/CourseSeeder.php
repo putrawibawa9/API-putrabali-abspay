@@ -14,47 +14,68 @@ class CourseSeeder extends Seeder
     public function run(): void
     {
         Course::create([
-            'name' => '6 A English',
+            'level' => '6',
+            'section' => 'A',
             'alias' => '6sra',
             'payment_rate' => 80000,
-            'type' => 'English',
+            'subject' => 'English',
         ]);
 
         Course::create([
-            'name' => '6 B Mapel',
-            'alias' => '6bsrb',
-            'payment_rate' => 100000,
-            'type' => 'Mapel',
+            'level' => '6',
+            'section' => 'B',
+            'alias' => '6srb',
+            'payment_rate' => 80000,
+            'subject' => 'English',
         ]);
 
         Course::create([
-            'name' => '6 A Mapel',
-            'alias' => '6bsra',
-            'payment_rate' => 100000,
-            'type' => 'Mapel',
+            'level' => '6',
+            'section' => 'C',
+            'alias' => '6src',
+            'payment_rate' => 80000,
+            'subject' => 'English',
         ]);
 
         Course::create([
-    'name' => '7 B Bahasa Inggris',
-    'alias' => '7srb',
-    'payment_rate' => 120000,
-    'type' => 'English',
-]);
+            'level' => '6',
+            'section' => 'D',
+            'alias' => '6srd',
+            'payment_rate' => 80000,
+            'subject' => 'English',
+        ]);
 
-Course::create([
-    'name' => '8 C Mapel',
-    'alias' => '8bsrc',
-    'payment_rate' => 130000,
-    'type' => 'Mapel',
-]);
+        Course::create([
+            'level' => '7',
+            'section' => 'E',
+            'alias' => '6sre',
+            'payment_rate' => 80000,
+            'subject' => 'Mapel',
+        ]);
 
-Course::create([
-    'name' => '9 A Mapel',
-    'alias' => '9bsra',
-    'payment_rate' => 140000,
-    'type' => 'Mapel',
-]);
+        Course::create([
+            'level' => '7',
+            'section' => 'F',
+            'alias' => '6srf',
+            'payment_rate' => 80000,
+            'subject' => 'Mapel',
+        ]);
 
+        Course::create([
+            'level' => '7',
+            'section' => 'G',
+            'alias' => '6srg',
+            'payment_rate' => 80000,
+            'subject' => 'Mapel',
+        ]);
+
+        Course::create([
+            'level' => '7',
+            'section' => 'H',
+            'alias' => '6srh',
+            'payment_rate' => 80000,
+            'subject' => 'Mapel',
+        ]);
 
 
     }

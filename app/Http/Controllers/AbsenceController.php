@@ -2,8 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\AbsenceRequest;
 use App\Models\Absence;
+use App\Models\Meeting;
 use Illuminate\Http\Request;
+use App\Http\Resources\MeetingResource;
 use Illuminate\Support\Facades\Validator;
 
 class AbsenceController extends Controller
@@ -13,7 +16,8 @@ class AbsenceController extends Controller
      */
     public function index()
     {
-        //
+        $meeting = Meeting::with('course', 'teacher')->get();
+        return MeetingResource::collection($meeting);
     }
 
     /**
@@ -27,48 +31,36 @@ class AbsenceController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-public function store(Request $request)
+public function store(AbsenceRequest $request)
 {
-    // Validate the incoming request data
-    $validator = Validator::make($request->all(), [
-        'meeting_id' => 'required|exists:meetings,id',
-        'attendances' => 'required|array',
-        'attendances.*.students_courses_id' => 'required|exists:students_courses,id',
-        'attendances.*.status' => 'required|string'
+    // create a new meeting record
+    $meeting = Meeting::create([
+        'course_id' => $request->course_id,
+        'day' => $request->day,
+        'date' => $request->date,
+        'time' => $request->time,
+        'teacher_id' => $request->teacher_id,
     ]);
-
-    if ($validator->fails()) {
-        return response()->json([
-            'success' => false,
-            'message' => 'Validation failed',
-            'errors' => $validator->errors()
-        ], 422);
-    }
-
-    // Create the attendance records in a batch
     $absences = [];
     foreach ($request->attendances as $attendance) {
         $absences[] = Absence::create([
             'students_courses_id' => $attendance['students_courses_id'],
-            'meeting_id' => $request->meeting_id,
+            'meeting_id' => $meeting->id,
             'status' => $attendance['status'],
         ]);
     }
 
-    // Return a response indicating success
-    return response()->json([
-        'success' => true,
-        'message' => 'Attendance recorded successfully',
-        'data' => $absences
-    ], 201);
+   return response(null, 201);
 }
 
     /**
      * Display the specified resource.
      */
-    public function show(Absence $absence)
+    public function show($meeting)
     {
-        //
+$meeting = Meeting::with('course.studentsCourses.student')->find($meeting);
+        return response()->json($meeting);
+
     }
 
     /**

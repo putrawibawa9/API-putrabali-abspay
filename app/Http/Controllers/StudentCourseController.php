@@ -45,7 +45,7 @@ class StudentCourseController extends Controller
     // Get the class they are trying to enroll in
     $course = Course::findOrFail($request->course_id);
 
-    $existingClasses = $student->courses()->where('type', $course->type)->count();
+    $existingClasses = $student->courses()->where('subject', $course->type)->count();
 
     if ($existingClasses >= 1) {
         return response()->json([

@@ -25,6 +25,10 @@ Route::prefix('v1')->group(function () {
         Route::delete('/dropouts/{id}', [StudentCourseController::class, 'destroy']);
         Route::resource('/payments', PaymentController::class);
         Route::resource('/meetings', MeetingController::class);
-        Route::resource('/absence', AbsenceController::class);
+        Route::resource('/absences', AbsenceController::class);
         Route::get('/students/schedules/{nim}', [ScheduleController::class, 'getStudentSchedules']);
+        Route::get('/meetings/recap/{courseId}/{month}', [MeetingController::class, 'recapMeetings']);
+        Route::get('/payments/recap/{studentId}/{year}', [PaymentController::class, 'recapStudentPayments']);
+        Route::post('/courses/search', [CourseController::class, 'search']);
+        Route::get('/student/payment/{id}', [PaymentController::class, 'getStudentPayment']);
 });
