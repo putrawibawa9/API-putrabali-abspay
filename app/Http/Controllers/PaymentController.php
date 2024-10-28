@@ -2,11 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\PaymentRequest;
 use App\Models\Payment;
-use App\Models\StudentCourse;
+use App\Models\Student;
 use Illuminate\Http\Request;
+use App\Models\StudentCourse;
 use Illuminate\Support\Facades\DB;
+use App\Http\Requests\PaymentRequest;
 
 class PaymentController extends Controller
 {
@@ -100,10 +101,29 @@ class PaymentController extends Controller
         ]);
     }
 
-    public function getStudentPayment($id)
-    {
-        // Get the payment of a student
-        $payment = Payment::where('student_id', $id)->get();
-        return response()->json($payment);
+public function getStudentPayment($id)
+{
+    // Get the student with courses and payments using eager loading
+    $student = Student::with(['courses', 'payments'])->find($id);
+    if (!$student) {
+        return response()->json(['error' => 'Student not found'], 404);
     }
+
+    // Organize payments by course
+    $coursePayments = [];
+    foreach ($student->courses as $course) {
+        // Filter payments related to this specific course
+        $coursePayments[$course->id] = [
+            'course' => $course,
+            'payments' => $student->payments->where('course_id', $course->id),
+        ];
+    }
+    // return student data and payments
+    return response()->json([
+        'student' => $student,
+        'course_payments' => $coursePayments,
+    ]);
+}
+
+
 }
