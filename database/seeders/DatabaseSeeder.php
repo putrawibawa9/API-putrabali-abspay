@@ -28,6 +28,7 @@ class DatabaseSeeder extends Seeder
             StudentCourseSeeder::class,
             ScheduleSeeder::class,
             MeetingSeeder::class,
+            UserSeeder::class,
             // AbsenceSeeder::class,
             ]
         );

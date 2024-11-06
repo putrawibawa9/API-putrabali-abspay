@@ -16,6 +16,7 @@ return new class extends Migration
             $table->foreignId('student_id')->constrained()->onDelete('cascade');
             $table->foreignId('course_id')->constrained()->onDelete('cascade');
             $table->integer('custom_payment_rate')->nullable();
+            $table->boolean('is_active')->default(true);
             $table->timestamps();
         });
     }

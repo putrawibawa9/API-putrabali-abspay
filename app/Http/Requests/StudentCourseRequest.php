@@ -28,7 +28,7 @@ class StudentCourseRequest extends FormRequest
                 return $query->where('course_id', request()->course_id);
             }),
         ],
-        'custom_payment_rate' => 'required|numeric|min:0',
+        'custom_payment_rate' => 'numeric|min:0',
     ];
 }
 

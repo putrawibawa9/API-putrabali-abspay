@@ -31,4 +31,5 @@ Route::prefix('v1')->group(function () {
         Route::get('/payments/recap/{studentId}/{year}', [PaymentController::class, 'recapStudentPayments']);
         Route::post('/courses/search', [CourseController::class, 'search']);
         Route::get('/student/payment/{id}', [PaymentController::class, 'getStudentPayment']);
+        Route::post('/students/search', [StudentController::class, 'search']);
 });

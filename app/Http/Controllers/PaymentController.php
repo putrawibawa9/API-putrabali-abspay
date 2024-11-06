@@ -41,7 +41,8 @@ class PaymentController extends Controller
         // check if the student has paid the specific class for the month
         $payment = Payment::where('student_id', $request->student_id)->where('course_id', $request->course_id)->where('payment_month', $request->payment_month)->first();
         if ($payment) {
-            return response()->json(['message' => 'Student has already paid for this month']);
+            // return unprocessed entity
+            return response()->json(['error' => 'Payment already exists for this month'], 422);
         }
         // Add new payment to the database
         $payment = new Payment();
@@ -49,6 +50,7 @@ class PaymentController extends Controller
         $payment->course_id = $request->course_id;
         $payment->payment_month = $request->payment_month;
         $payment->payment_amount = $request->payment_amount;
+        $payment->user_id = $request->user_id;
         $payment->save();
     }
 
@@ -104,7 +106,7 @@ class PaymentController extends Controller
 public function getStudentPayment($id)
 {
     // Get the student with courses and payments using eager loading
-    $student = Student::with(['courses', 'payments'])->find($id);
+    $student = Student::with(['activeCourses', 'payments'])->find($id);
     if (!$student) {
         return response()->json(['error' => 'Student not found'], 404);
     }

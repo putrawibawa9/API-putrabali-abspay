@@ -120,7 +120,11 @@ class StudentCourseController extends Controller
      */
     public function destroy(StudentCourse $id)
     {
-        $id->delete();
+        
+   
+    $id->is_active = false;
+    $id->save();
+    return response(null, 204);
     }
 
     public function allEnrolledStudents()

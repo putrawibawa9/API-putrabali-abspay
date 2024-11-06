@@ -26,6 +26,7 @@ class PaymentRequest extends FormRequest
             'course_id' => 'required|exists:courses,id',
             'payment_amount' => 'required|integer',
             'payment_month' => 'required|string',
+            'user_id' => 'required|exists:users,id',
         ];
     }
 }

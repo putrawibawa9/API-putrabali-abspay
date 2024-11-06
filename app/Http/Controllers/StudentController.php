@@ -51,7 +51,7 @@ class StudentController extends Controller
     public function show(Student $student)
     {
     //    check the course that the student enroll
-        $student = Student::where('id', $student->id)->with('courses')->first();
+        $student = Student::where('id', $student->id)->with('activeCourses')->first();
         return response()->json($student);
     }
 
@@ -83,5 +83,13 @@ public function update(StudentRequest $request, Student $student)
     {
         // delete a student from the database
         $student->delete();
+    }
+
+    public function search(Request $request)
+    {
+        $students = Student::where('name', 'like', '%' . $request->search . '%')
+            ->orWhere('nis', 'like', '%' . $request->search . '%')
+            ->get();
+        return response()->json($students);
     }
 }
