@@ -26,10 +26,15 @@ Route::prefix('v1')->group(function () {
         Route::resource('/payments', PaymentController::class);
         Route::resource('/meetings', MeetingController::class);
         Route::resource('/absences', AbsenceController::class);
+        Route::post('/courses/search', [CourseController::class, 'search']);
+        Route::post('/students/search', [StudentController::class, 'search']);
+        Route::get('/student/payment/{id}', [PaymentController::class, 'getStudentPayment']);
         Route::get('/students/schedules/{nim}', [ScheduleController::class, 'getStudentSchedules']);
+
+        // Recapitulations
         Route::get('/meetings/recap/{courseId}/{month}', [MeetingController::class, 'recapMeetings']);
         Route::get('/payments/recap/{studentId}/{year}', [PaymentController::class, 'recapStudentPayments']);
-        Route::post('/courses/search', [CourseController::class, 'search']);
-        Route::get('/student/payment/{id}', [PaymentController::class, 'getStudentPayment']);
-        Route::post('/students/search', [StudentController::class, 'search']);
+        Route::post('/payments/recap', [PaymentController::class, 'paymentRecap']);
+        Route::get('/monthly/enrolled/student', [StudentController::class, 'monthlyEnrolledStudent']);
+        Route::get('/monthly/payment/student', [PaymentController::class, 'monthlyPaymentStudent']);
 });

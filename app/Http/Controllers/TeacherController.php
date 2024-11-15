@@ -69,11 +69,11 @@ class TeacherController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy($alias)
+    public function destroy(Teacher $teacher)
     {
-        // delete a teacher from the database
-        $teacher = Teacher::where('alias', $alias)->first();
-        $teacher->delete();
-        
+      
+             $teacher->delete();
+
+             return response(null, 204);
     }
 }

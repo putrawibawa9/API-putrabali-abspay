@@ -80,6 +80,7 @@ class CourseController extends Controller
      */
     public function show(Course $course)
     {
+        
         // check if the course is available
         if (!$course) {
             return response(null, 404);

@@ -92,4 +92,12 @@ public function update(StudentRequest $request, Student $student)
             ->get();
         return response()->json($students);
     }
+
+    public function monthlyEnrolledStudent()
+    {
+        $students = Student::whereMonth('created_at', date('m'))->get();
+        $sum = $students->count();
+        // return the students data and also the summary of the students
+        return response()->json(['sum' => $sum, 'students' => $students]);
+    }
 }

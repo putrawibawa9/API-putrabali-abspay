@@ -7,6 +7,7 @@ use App\Models\Student;
 use Illuminate\Http\Request;
 use App\Models\StudentCourse;
 use Illuminate\Support\Facades\DB;
+
 use App\Http\Requests\PaymentRequest;
 
 class PaymentController extends Controller
@@ -126,6 +127,28 @@ public function getStudentPayment($id)
         'course_payments' => $coursePayments,
     ]);
 }
+
+public function paymentRecap(Request $request)
+{
+
+    $startDate = $request->start_date;
+    $endDate = $request->end_date;
+    // sum the payments for the given date range
+    $totalPayments = DB::table('payments')
+                        ->whereBetween('created_at', [$startDate, $endDate])
+                        ->sum('payment_amount');
+    return response()->json([
+        'start_date' => $startDate,
+        'end_date' => $endDate,
+        'total_payments' => $totalPayments,
+    ]);
+}
+
+    public function monthlyPaymentStudent(){
+        $payments = Payment::whereMonth('created_at', date('m'))->get();
+        $totalPembayaran = $payments->sum('payment_amount');
+        return response()->json(['totalPembayaran' => $totalPembayaran, 'payments' => $payments]);
+    }
 
 
 }
