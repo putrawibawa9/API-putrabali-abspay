@@ -2,10 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\AbsenceRequest;
 use App\Models\Absence;
 use App\Models\Meeting;
+use App\Models\Student;
 use Illuminate\Http\Request;
+use App\Http\Requests\AbsenceRequest;
 use App\Http\Resources\MeetingResource;
 use Illuminate\Support\Facades\Validator;
 
@@ -86,4 +87,31 @@ $meeting = Meeting::with('course.studentsCourses.student')->find($meeting);
     {
         //
     }
+
+public function getAbsenceHistory($id)
+{
+    $student = Student::with([
+        'studentsCourses.course',
+        'studentsCourses.absences.meeting'
+    ])->findOrFail($id);
+
+    $absenceHistory = $student->studentsCourses->map(function ($studentsCourse) {
+        return [
+            'course' => [
+                'alias' => $studentsCourse->course->alias,
+                'subject' => $studentsCourse->course->subject,
+            ],
+            'absences' => $studentsCourse->absences->map(function ($absence) {
+                return [
+                    'meeting_date' => $absence->meeting->date,
+                    'meeting_time' => $absence->meeting->time,
+                    'status' => $absence->status,
+                ];
+            })->toArray(), // Convert absences to an array
+        ];
+    });
+
+    return response()->json($absenceHistory);
+}
+
 }

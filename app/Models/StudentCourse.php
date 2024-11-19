@@ -28,6 +28,6 @@ class StudentCourse extends Model
     // A student_course has many absences
     public function absences()
     {
-        return $this->hasMany(Absence::class);
+        return $this->hasMany(Absence::class, 'students_courses_id');
     }
 }

@@ -27,6 +27,7 @@ class PaymentRequest extends FormRequest
             'payment_amount' => 'required|integer',
             'payment_month' => 'required|string',
             'user_id' => 'required|exists:users,id',
+            'type' => 'required|string',
         ];
     }
 }

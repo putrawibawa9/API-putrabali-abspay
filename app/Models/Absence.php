@@ -19,7 +19,7 @@ class Absence extends Model
       // An absence belongs to a student_course
     public function studentCourse()
     {
-        return $this->belongsTo(StudentCourse::class);
+        return $this->belongsTo(StudentCourse::class, 'students_courses_id');
     }
 
     // An absence belongs to a meeting

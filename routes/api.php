@@ -37,4 +37,7 @@ Route::prefix('v1')->group(function () {
         Route::post('/payments/recap', [PaymentController::class, 'paymentRecap']);
         Route::get('/monthly/enrolled/student', [StudentController::class, 'monthlyEnrolledStudent']);
         Route::get('/monthly/payment/student', [PaymentController::class, 'monthlyPaymentStudent']);
+        Route::get('/student/absences/history/{id}',  [AbsenceController::class, 'getAbsenceHistory']);
+        Route::get('/students/monthly-paid/{month}',  [PaymentController::class, 'paidStudentsMonthly']);
+        Route::get('/students/monthly-unpaid/{month}',  [PaymentController::class, 'unpaidStudentsMonthly']);
 });

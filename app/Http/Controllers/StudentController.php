@@ -100,4 +100,10 @@ public function update(StudentRequest $request, Student $student)
         // return the students data and also the summary of the students
         return response()->json(['sum' => $sum, 'students' => $students]);
     }
+
+    
+
+
 }
+
+

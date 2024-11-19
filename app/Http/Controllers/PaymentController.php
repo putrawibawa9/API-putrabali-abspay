@@ -38,7 +38,7 @@ class PaymentController extends Controller
      */
     public function store(PaymentRequest $request)
     {
-
+        // dd($request->all());
         // check if the student has paid the specific class for the month
         $payment = Payment::where('student_id', $request->student_id)->where('course_id', $request->course_id)->where('payment_month', $request->payment_month)->first();
         if ($payment) {
@@ -52,6 +52,7 @@ class PaymentController extends Controller
         $payment->payment_month = $request->payment_month;
         $payment->payment_amount = $request->payment_amount;
         $payment->user_id = $request->user_id;
+        $payment->type = $request->type;
         $payment->save();
     }
 
@@ -148,6 +149,20 @@ public function paymentRecap(Request $request)
         $payments = Payment::whereMonth('created_at', date('m'))->get();
         $totalPembayaran = $payments->sum('payment_amount');
         return response()->json(['totalPembayaran' => $totalPembayaran, 'payments' => $payments]);
+    }
+
+    public function paidStudentsMonthly($month){
+        $students = Student::whereHas('payments', function($query) use ($month){
+            $query->where('payment_month', $month);
+        })->get();
+        return response()->json($students);
+    }
+
+    public function unpaidStudentsMonthly($month){
+        $students = Student::whereDoesntHave('payments', function($query) use ($month){
+            $query->where('payment_month', $month);
+        })->get();
+        return response()->json($students);
     }
 
 
