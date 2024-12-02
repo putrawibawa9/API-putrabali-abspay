@@ -91,4 +91,20 @@ class MeetingController extends Controller
             'meetings_count' => $meetingsCount,
         ]);
     }
+
+    public function courseMeetingsbyMonth(Request $request)
+    {
+        // dd($request->all());
+        $courseId = $request->course_id;
+        $month = $request->month;
+        // dd($courseId, $month);
+
+        $meetings = Meeting::where('course_id', $courseId)
+                            ->whereYear('date', substr($month, 0, 4))   // Extract year
+                            ->whereMonth('date', substr($month, 5, 2))  // Extract month
+                            ->get();
+
+                            // dd($meetings);
+        return MeetingResource::collection($meetings);
+    }
 }

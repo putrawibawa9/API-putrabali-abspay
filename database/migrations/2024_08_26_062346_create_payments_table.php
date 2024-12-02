@@ -18,7 +18,7 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->string('type');
             $table->integer('payment_amount');
-            $table->string('payment_month');
+            $table->string('payment_month')->nullable();
             $table->timestamps();
         });
     }

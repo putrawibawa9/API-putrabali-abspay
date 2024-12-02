@@ -31,7 +31,7 @@ public function rules()
             'required',
             'string',
             'max:255',
-            'unique:students,name,' . $studentId
+            // 'unique:students,name,' . $studentId
         ],
         'wa_number' => [
             'sometimes', // Only validate if present in the request

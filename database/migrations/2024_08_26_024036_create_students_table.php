@@ -18,7 +18,7 @@ return new class extends Migration
             $table->string('wa_number');
             $table->string('gender');
             $table->string('school');
-            $table->string('enroll_date');
+            $table->date('enroll_date');
             $table->timestamps();
         });
     }

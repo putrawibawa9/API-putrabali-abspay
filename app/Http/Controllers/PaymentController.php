@@ -21,7 +21,10 @@ class PaymentController extends Controller
         $students = StudentCourse::with('student')
     ->select('student_id')
     ->distinct()
+    ->orderBy('created_at', 'desc') // Order by the latest data
     ->get();
+
+
         return response()->json($students);
     }
 
@@ -36,25 +39,44 @@ class PaymentController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(PaymentRequest $request)
-    {
-        // dd($request->all());
-        // check if the student has paid the specific class for the month
-        $payment = Payment::where('student_id', $request->student_id)->where('course_id', $request->course_id)->where('payment_month', $request->payment_month)->first();
-        if ($payment) {
-            // return unprocessed entity
-            return response()->json(['error' => 'Payment already exists for this month'], 422);
-        }
-        // Add new payment to the database
-        $payment = new Payment();
-        $payment->student_id = $request->student_id;
-        $payment->course_id = $request->course_id;
-        $payment->payment_month = $request->payment_month;
-        $payment->payment_amount = $request->payment_amount;
-        $payment->user_id = $request->user_id;
-        $payment->type = $request->type;
-        $payment->save();
+public function store(PaymentRequest $request)
+{
+    // Check if the payment already exists for this specific combination
+    $payment = Payment::where('student_id', $request->student_id)
+        ->where('course_id', $request->course_id)
+        ->where(function ($query) use ($request) {
+            if ($request->type === 'spp') {
+                // For SPP, ensure it matches the specific payment_month
+                $query->where('type', 'spp')
+                      ->where('payment_month', $request->payment_month);
+            } else {
+                // For other types (modul, pendaftaran), check type and NULL payment_month
+                $query->where('type', $request->type)
+                      ->whereNull('payment_month');
+            }
+        })
+        ->first();
+
+    if ($payment) {
+        // Return unprocessed entity
+        return response()->json(['error' => 'Payment already exists'], 422);
     }
+
+    // Add new payment to the database
+    $payment = new Payment();
+    $payment->student_id = $request->student_id;
+    $payment->course_id = $request->course_id;
+    $payment->payment_month = $request->payment_month; // This is only relevant for SPP
+    $payment->payment_amount = $request->payment_amount;
+    $payment->user_id = $request->user_id;
+    $payment->type = $request->type; // Identifies whether it's spp, modul, or pendaftaran
+    $payment->save();
+
+    return response()->json(['message' => 'Payment added successfully'], 200);
+}
+
+
+
 
     /**
      * Display the specified resource.
@@ -62,7 +84,10 @@ class PaymentController extends Controller
     public function show($student_id)
     {
         // check the course that the student in
-        $payment = Payment::where('student_id', $student_id)->with('course')->get();
+        $payment = Payment::where('student_id', $student_id)
+        ->with('course')
+        ->orderBy('created_at', 'desc')
+        ->get();
     }
 
     /**
@@ -107,8 +132,14 @@ class PaymentController extends Controller
 
 public function getStudentPayment($id)
 {
-    // Get the student with courses and payments using eager loading
-    $student = Student::with(['activeCourses', 'payments'])->find($id);
+    // Get the student with courses and sorted payments using eager loading
+    $student = Student::with([
+        'activeCourses',
+        'payments' => function ($query) {
+            $query->orderBy('created_at', 'desc');
+        },
+    ])->find($id);
+
     if (!$student) {
         return response()->json(['error' => 'Student not found'], 404);
     }
@@ -116,18 +147,19 @@ public function getStudentPayment($id)
     // Organize payments by course
     $coursePayments = [];
     foreach ($student->courses as $course) {
-        // Filter payments related to this specific course
         $coursePayments[$course->id] = [
             'course' => $course,
             'payments' => $student->payments->where('course_id', $course->id),
         ];
     }
-    // return student data and payments
+
+    // Return student data and payments
     return response()->json([
         'student' => $student,
         'course_payments' => $coursePayments,
     ]);
 }
+
 
 public function paymentRecap(Request $request)
 {
@@ -151,19 +183,29 @@ public function paymentRecap(Request $request)
         return response()->json(['totalPembayaran' => $totalPembayaran, 'payments' => $payments]);
     }
 
-    public function paidStudentsMonthly($month){
-        $students = Student::whereHas('payments', function($query) use ($month){
-            $query->where('payment_month', $month);
-        })->get();
-        return response()->json($students);
+    public function paidAndUnpaidStudentsMonthly(Request $request){
+        $month = $request->month;
+        // dd($month);
+        $students = Student::all();
+        // dd($students);
+        $paidStudents = [];
+        $unpaidStudents = [];
+        foreach ($students as $student) {
+            // dd($student);
+            $payment = Payment::where('student_id', $student->id)->where('payment_month', $month)->first();
+            if ($payment) {
+                $paidStudents[] = $student;
+            } else {
+                $unpaidStudents[] = $student;
+            }
+        }
+        return response()->json([
+            'paid_students' => $paidStudents,
+            'unpaid_students' => $unpaidStudents,
+        ]);
     }
 
-    public function unpaidStudentsMonthly($month){
-        $students = Student::whereDoesntHave('payments', function($query) use ($month){
-            $query->where('payment_month', $month);
-        })->get();
-        return response()->json($students);
-    }
+  
 
 
 }

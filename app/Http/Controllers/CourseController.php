@@ -119,4 +119,6 @@ class CourseController extends Controller
         // delete a course from the database
         $course->delete();
     }
+
+ 
 }

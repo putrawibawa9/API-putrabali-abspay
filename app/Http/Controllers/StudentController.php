@@ -13,8 +13,9 @@ class StudentController extends Controller
      */
     public function index()
     {
-        // Get all students from the database based on their alphabitic order name
-        $students = Student::orderBy('name')->get();
+ 
+    //    get all students latest data first and paginate
+        $students = Student::latest()->paginate(20);
         return response()->json($students);
     }
 
@@ -89,7 +90,7 @@ public function update(StudentRequest $request, Student $student)
     {
         $students = Student::where('name', 'like', '%' . $request->search . '%')
             ->orWhere('nis', 'like', '%' . $request->search . '%')
-            ->get();
+            ->paginate(5);
         return response()->json($students);
     }
 

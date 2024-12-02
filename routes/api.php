@@ -28,6 +28,7 @@ Route::prefix('v1')->group(function () {
         Route::resource('/absences', AbsenceController::class);
         Route::post('/courses/search', [CourseController::class, 'search']);
         Route::post('/students/search', [StudentController::class, 'search']);
+        Route::post('/teachers/search', [TeacherController::class, 'search']);
         Route::get('/student/payment/{id}', [PaymentController::class, 'getStudentPayment']);
         Route::get('/students/schedules/{nim}', [ScheduleController::class, 'getStudentSchedules']);
 
@@ -38,6 +39,6 @@ Route::prefix('v1')->group(function () {
         Route::get('/monthly/enrolled/student', [StudentController::class, 'monthlyEnrolledStudent']);
         Route::get('/monthly/payment/student', [PaymentController::class, 'monthlyPaymentStudent']);
         Route::get('/student/absences/history/{id}',  [AbsenceController::class, 'getAbsenceHistory']);
-        Route::get('/students/monthly-paid/{month}',  [PaymentController::class, 'paidStudentsMonthly']);
-        Route::get('/students/monthly-unpaid/{month}',  [PaymentController::class, 'unpaidStudentsMonthly']);
+        Route::post('/students/monthly-paid-unpaid',  [PaymentController::class, 'paidAndUnpaidStudentsMonthly']);
+        Route::post('/course/monthly/meetings',  [MeetingController::class, 'courseMeetingsbyMonth']);
 });

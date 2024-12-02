@@ -16,7 +16,7 @@ class MeetingResource extends JsonResource
     {
           return [
             'id' => $this->id,
-            'class_name' => $this->course->name,  // Assuming 'name' is the class name field in the Course model
+            'class_name' => $this->course->alias,  // Assuming 'name' is the class name field in the Course model
             'teacher_name' => $this->teacher->name,  // Assuming 'name' is the teacher name field in the Teacher model
             'day' => $this->day,
             'date' => $this->date,

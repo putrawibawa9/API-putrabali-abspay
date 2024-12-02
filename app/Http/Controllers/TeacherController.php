@@ -13,7 +13,9 @@ class TeacherController extends Controller
      */
     public function index()
     {
-        $teachers = Teacher::all();
+        // paginate and latest data first
+
+        $teachers = Teacher::latest()->paginate(20);
         return response()->json($teachers);
     }
 
@@ -32,6 +34,8 @@ class TeacherController extends Controller
     {
         $teacher = new Teacher();
         $teacher->name = $request->name;
+        $teacher->username = $request->username;
+        $teacher->password = bcrypt($request->password);
         $teacher->alias = $request->alias;
         $teacher->save();
         return response(null, 201);
@@ -40,10 +44,10 @@ class TeacherController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show($alias)
+    public function show($id)
     {
-        // check the name based on aliases
-        $teacher = Teacher::where('alias', $alias)->first();
+        //show teacher by id
+        $teacher = Teacher::findOrFail($id);
         return response()->json($teacher);
     }
 
@@ -60,10 +64,11 @@ class TeacherController extends Controller
      */
     public function update(TeacherRequest $request, Teacher $teacher)
     {
-        // Update teacher
-        $teacher->name = $request->name;
-        $teacher->alias = $request->alias;
-        $teacher->save();
+       $validated = $request->validated();
+    //    dd($validated);
+    // update the student in the database
+    $teacher->update($validated);
+    return response(null, 204);
     }
 
     /**
@@ -75,5 +80,13 @@ class TeacherController extends Controller
              $teacher->delete();
 
              return response(null, 204);
+    }
+
+      public function search(Request $request)
+    {
+        $teachers = Teacher::where('name', 'like', '%' . $request->search . '%')
+            ->orWhere('alias', 'like', '%' . $request->search . '%')
+            ->paginate(5);
+        return response()->json($teachers);
     }
 }

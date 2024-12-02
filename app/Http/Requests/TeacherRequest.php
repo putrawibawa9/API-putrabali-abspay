@@ -21,10 +21,34 @@ class TeacherRequest extends FormRequest
      */
     public function rules(): array
     {
-        return [
-            'name' => 'required|string|max:255|unique:teachers,name', // Required, string, max length 255
-            'alias' => 'required|string|max:50|unique:teachers,alias', // Optional, string, max length 50
-        ];
+       return [
+    'name' => [
+        'sometimes', // Only validate if present in the request
+        'required',
+        'string',
+        'max:255',
+        'unique:teachers,name'
+    ],
+    'alias' => [
+        'sometimes', // Only validate if present in the request
+        'string',
+        'max:50',
+        'unique:teachers,alias'
+    ],
+    'username' => [
+        'sometimes', // Only validate if present in the request
+        'required',
+        'string',
+        'max:50',
+        'unique:teachers,username'
+    ],
+    'password' => [
+        'sometimes', // Only validate if present in the request
+        'required',
+        'string',
+        'min:8'
+    ],
+];
     }
 
    

@@ -25,7 +25,7 @@ class PaymentRequest extends FormRequest
             'student_id' => 'required|exists:students,id',
             'course_id' => 'required|exists:courses,id',
             'payment_amount' => 'required|integer',
-            'payment_month' => 'required|string',
+            'payment_month' => 'string',
             'user_id' => 'required|exists:users,id',
             'type' => 'required|string',
         ];
