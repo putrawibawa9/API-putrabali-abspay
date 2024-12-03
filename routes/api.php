@@ -17,6 +17,7 @@ Route::prefix('v1')->group(function () {
         Route::resource('/students', StudentController::class);
         Route::resource('/courses', CourseController::class);
         Route::resource('/teachers', TeacherController::class);
+        Route::get('/student/with-active-course', [StudentCourseController::class, 'getStudentsWithActiveCourse']);
     // Operation API routes
         Route::get('/students-courses/{id}', [StudentCourseController::class, 'show']);
         Route::get('/students-courses', [StudentCourseController::class, 'allEnrolledStudents']);

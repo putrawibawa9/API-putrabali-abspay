@@ -140,13 +140,16 @@ class StudentCourseController extends Controller
     return response(null, 204);
     }
 
-    public function allEnrolledStudents()
+    public function getStudentsWithActiveCourse()
     {
         // Fetch all students with their enrolled courses but without duplicates
-        $students = StudentCourse::with('student')
-            ->select('student_id')
-            ->distinct()
+        $students = Student::with('courses')
+            ->whereHas('courses', function ($query) {
+                $query->where('is_active', true);
+            })  
             ->get();
-            return response()->json($students);
+
+        return response()->json($students);
+        
     }
 }
