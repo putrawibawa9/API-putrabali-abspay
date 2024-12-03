@@ -25,9 +25,11 @@ class StudentCourseRequest extends FormRequest
         'student_id' => [
             'required',
             Rule::unique('students_courses')->where(function ($query) {
-                return $query->where('course_id', request()->course_id);
+                return $query->where('course_id', request()->course_id)
+                ->where('is_active', true);
             }),
         ],
+     
         'custom_payment_rate' => 'numeric|min:0',
     ];
 }

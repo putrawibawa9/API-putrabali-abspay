@@ -90,6 +90,7 @@ $meeting = Meeting::with('course.studentsCourses.student')->find($meeting);
 
 public function getAbsenceHistory($id)
 {
+    // get the data descending
     $student = Student::with([
         'studentsCourses.course',
         'studentsCourses.absences.meeting'

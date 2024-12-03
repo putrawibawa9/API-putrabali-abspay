@@ -39,6 +39,19 @@ class StudentCourseController extends Controller
      */
     public function store(StudentCourseRequest $request)
     {
+
+        // check if the student is an re-enrolling student
+        $studentCourse = StudentCourse::where('student_id', $request->student_id)
+            ->where('course_id', $request->course_id)
+            ->where('is_active', false)
+            ->first();
+        // dd($studentCourse);
+        if ($studentCourse) {
+            $studentCourse->is_active = true;
+            $studentCourse->custom_payment_rate = $request->custom_payment_rate;
+            $studentCourse->save();
+            return response(null, 201);
+        }
        // Find the student by ID
     $student = Student::findOrFail($request->student_id);
 
