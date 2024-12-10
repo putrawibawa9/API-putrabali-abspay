@@ -6,6 +6,7 @@ use App\Models\Absence;
 use App\Models\Meeting;
 use App\Models\Student;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use App\Http\Requests\AbsenceRequest;
 use App\Http\Resources\MeetingResource;
 use Illuminate\Support\Facades\Validator;
@@ -59,7 +60,7 @@ public function store(AbsenceRequest $request)
      */
     public function show($meeting)
     {
-$meeting = Meeting::with('course.studentsCourses.student')->find($meeting);
+        $meeting = Meeting::with('course.studentsCourses.student')->find($meeting);
         return response()->json($meeting);
 
     }
@@ -92,9 +93,11 @@ public function getAbsenceHistory($id)
 {
     $student = Student::with([
         'studentsCourses.course',
-        'studentsCourses.absences.meeting'
+        'studentsCourses.absences' => function ($query) {
+            $query->with('meeting'); // Ensure absences load with meetings
+        },
     ])->findOrFail($id);
-
+//   Log::info($student->studentsCourses->toArray());
     $absenceHistory = $student->studentsCourses->map(function ($studentsCourse) {
         return [
             'course' => [
@@ -113,6 +116,7 @@ public function getAbsenceHistory($id)
 
     return response()->json($absenceHistory);
 }
+
 
 
 }

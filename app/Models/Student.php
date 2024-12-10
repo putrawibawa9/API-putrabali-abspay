@@ -31,9 +31,12 @@ class Student extends Model
     }
 
      public function courses()
-    {
-        return $this->belongsToMany(Course::class, 'students_courses', 'student_id', 'course_id');
-    }
+{
+    return $this->belongsToMany(Course::class, 'students_courses') // Pivot table name
+                ->withPivot('custom_payment_rate') // Specify the pivot field
+                ->withTimestamps(); // If your pivot table includes timestamps
+}
+
 
 public function activeCourses()
 {

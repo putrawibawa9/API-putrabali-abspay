@@ -25,7 +25,7 @@ class Absence extends Model
     // An absence belongs to a meeting
     public function meeting()
     {
-        return $this->belongsTo(Meeting::class)->orderBy('created_at', 'desc');
+        return $this->belongsTo(Meeting::class);
     }
 
     // An absence belongs to a teacher

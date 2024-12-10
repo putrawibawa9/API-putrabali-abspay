@@ -141,15 +141,17 @@ class StudentCourseController extends Controller
     }
 
     public function getStudentsWithActiveCourse()
-    {
-        // Fetch all students with their enrolled courses but without duplicates
-        $students = Student::with('courses')
-            ->whereHas('courses', function ($query) {
-                $query->where('is_active', true);
-            })  
-            ->get();
+{
+    // Fetch all students with their enrolled courses and pivot data
+    $students = Student::with(['courses' => function ($query) {
+            $query->where('is_active', true); // Filter active courses
+        }])
+        ->whereHas('courses', function ($query) {
+            $query->where('is_active', true);
+        })
+        ->paginate(20);
 
-        return response()->json($students);
-        
-    }
+    return response()->json($students);
+}
+
 }

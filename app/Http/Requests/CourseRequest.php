@@ -18,10 +18,9 @@ class CourseRequest extends FormRequest
   public function rules()
 {
     return [
-        'level' => 'required|string|max:255',
-        'section' => 'required|string|max:255',
+        'level' => 'string|max:255',
+        'section' => 'string|max:255',
         'subject' => [
-            'required',
             'string',
             'in:English,Mapel',
             Rule::unique('courses')->where(function ($query) {
@@ -30,7 +29,17 @@ class CourseRequest extends FormRequest
             }),
         ],
         'alias' => 'nullable|string|max:255|unique:courses,alias',
-        'payment_rate' => 'required|numeric|min:0',
+        'payment_rate' => 'numeric|min:0',
     ];
 }
+
+    public function messages()
+    {
+        return [
+    //    return error message if the combination of level, section, and subject already exists
+            'subject.unique' => 'Kelas sudah ada',
+            'alias.unique' => 'Alias sudah ada',
+        ];
+    }
+
 }

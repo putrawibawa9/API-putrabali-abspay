@@ -28,7 +28,7 @@ class StudentCourse extends Model
     // A student_course has many absences
   public function absences()
 {
-    return $this->hasMany(Absence::class, 'students_courses_id')->orderBy('created_at', 'desc')->with('meeting');
+    return $this->hasMany(Absence::class, 'students_courses_id');
 }
 
 

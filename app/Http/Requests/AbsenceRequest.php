@@ -45,7 +45,7 @@ class AbsenceRequest extends FormRequest
                     ->exists();
 
                 if ($exists) {
-                    $fail('The combination of day, date, time, course, and teacher already exists.');
+                    $fail('Kelas ini sudah diabsen pada waktu tersebut.');
                 }
             }
         ],

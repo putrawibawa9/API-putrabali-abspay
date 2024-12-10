@@ -30,12 +30,13 @@ class CourseController extends Controller
     }
 
     // Retrieve the filtered results
-    $courses = $query->get();
+    $courses = $query->paginate(10);
 
-    // Return 404 if no course is found
+    // Return 404 and a message if no results are found
     if ($courses->isEmpty()) {
-        return response(null, 404);
+        return response()->json(['message' => 'No courses found'], 404);
     }
+   
     
     // Return the results as a JSON response
     return response()->json($courses);
@@ -46,7 +47,7 @@ class CourseController extends Controller
     public function index()
     {
         //add new course
-        $courses = Course::all();
+        $courses = Course::paginate(20);
         return response()->json($courses);
     }
 
@@ -103,13 +104,13 @@ class CourseController extends Controller
      */
     public function update(CourseRequest $request, Course $course)
     {
-        // update a course in the database
-        $course->name = $request->name;
-        $course->alias = $request->alias;
-        $course->payment_rate = $request->payment_rate;
-        $course->type = $request->type;
-        $course->save();
+        $validated = $request->validated();
+    // update the student in the database
+    $course->update($validated);
+    return response(null, 204);
     }
+
+
 
     /**
      * Remove the specified resource from storage.
