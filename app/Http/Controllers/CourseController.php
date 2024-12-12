@@ -81,7 +81,7 @@ class CourseController extends Controller
      */
     public function show(Course $course)
     {
-        
+            // dd($course);
         // check if the course is available
         if (!$course) {
             return response(null, 404);
@@ -121,5 +121,5 @@ class CourseController extends Controller
         $course->delete();
     }
 
- 
+
 }

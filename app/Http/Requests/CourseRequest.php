@@ -20,7 +20,7 @@ class CourseRequest extends FormRequest
     return [
         'level' => 'string|max:255',
         'section' => 'string|max:255',
-        'subject' => [
+        'subject' => [ 
             'string',
             'in:English,Mapel',
             Rule::unique('courses')->where(function ($query) {

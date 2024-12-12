@@ -32,9 +32,12 @@ Route::prefix('v1')->group(function () {
         Route::post('/teachers/search', [TeacherController::class, 'search']);
         Route::get('/student/payment/{id}', [PaymentController::class, 'getStudentPayment']);
         Route::get('/students/schedules/{nim}', [ScheduleController::class, 'getStudentSchedules']);
+        Route::get('/course/meeting-history/{id}', [MeetingController::class, 'getMeetingHistory']);
+        Route::get('/absences/meeting/{id}', [MeetingController::class, 'getAbsencesByMeetingId']);
 
         // Recapitulations
-        Route::get('/meetings/recap/{courseId}/{month}', [MeetingController::class, 'recapMeetings']);
+        Route::get('/meetings/recap/{courseId}', [MeetingController::class, 'recapMeetings']);
+        Route::get('/meetings/recap/{courseId}/{month}', [MeetingController::class, 'recapMeetingsByMonth']);
         Route::get('/payments/recap/{studentId}/{year}', [PaymentController::class, 'recapStudentPayments']);
         Route::post('/payments/recap', [PaymentController::class, 'paymentRecap']);
         Route::get('/monthly/enrolled/student', [StudentController::class, 'monthlyEnrolledStudent']);

@@ -60,10 +60,10 @@ public function store(AbsenceRequest $request)
      */
     public function show($meeting)
     {
-        $meeting = Meeting::with('course.studentsCourses.student')->find($meeting);
-        return response()->json($meeting);
+     
 
     }
+
 
     /**
      * Show the form for editing the specified resource.
