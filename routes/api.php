@@ -1,17 +1,21 @@
 <?php
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\UserController;
 use App\Http\Controllers\CourseController;
 use App\Http\Controllers\AbsenceController;
 use App\Http\Controllers\MeetingController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\StudentController;
 use App\Http\Controllers\TeacherController;
-use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\ScheduleController;
+use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\StudentCourseController;
 
 Route::prefix('v1')->group(function () {
+
+    // Authentication
+    Route::post('admin/register',[UserController::class,'register'])->name('user.register');
 
     // Entity API routes
         Route::resource('/students', StudentController::class);
