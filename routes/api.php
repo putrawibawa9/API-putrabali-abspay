@@ -11,6 +11,7 @@ use App\Http\Controllers\TeacherController;
 use App\Http\Controllers\ScheduleController;
 use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\StudentCourseController;
+use App\Http\Controllers\RecapitulationController;
 
 Route::prefix('v1')->group(function () {
 
@@ -40,6 +41,7 @@ Route::prefix('v1')->group(function () {
         Route::get('/absences/meeting/{id}', [MeetingController::class, 'getAbsencesByMeetingId']);
 
         // Recapitulations
+        Route::get('/recapitulations', [RecapitulationController::class, 'index']);
         Route::get('/meetings/recap/{courseId}', [MeetingController::class, 'recapMeetings']);
         Route::get('/meetings/recap/{courseId}/{month}', [MeetingController::class, 'recapMeetingsByMonth']);
         Route::get('/payments/recap/{studentId}/{year}', [PaymentController::class, 'recapStudentPayments']);

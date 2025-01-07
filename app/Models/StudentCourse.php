@@ -11,7 +11,11 @@ class StudentCourse extends Model
 
     protected $table = 'students_courses';
 
-    
+   protected $fillable = [
+        'student_id',
+        'course_id',
+        'custom_payment_rate',
+    ];
 
   // A student_course belongs to a student
     public function student()

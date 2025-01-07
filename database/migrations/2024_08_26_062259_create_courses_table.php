@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('subject');
             $table->string('alias');
             $table->integer('payment_rate');
+            $table->integer('is_active')->default(1);
             $table->timestamps();
         });
     }

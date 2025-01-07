@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\StudentRequest;
 use App\Models\Student;
 use Illuminate\Http\Request;
+use App\Models\StudentCourse;
+use App\Http\Requests\StudentRequest;
+use App\Http\Requests\StudentCourseRequest;
 
 class StudentController extends Controller
 {
@@ -30,21 +32,33 @@ class StudentController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StudentRequest $request)
-    {
-        // add a new student to the database
-        $latestNis = Student::max('nis');
-        $student = new Student();
-        $student->nis = $latestNis ? $latestNis + 1 : 1001;
-        $student->name = $request->name;
-        $student->wa_number = $request->wa_number;
-        $student->gender = $request->gender;
-        $student->school = $request->school;
-        $student->enroll_date = $request->enroll_date;
-        $student->save();
+    public function store(StudentRequest $studentRequest)
+{
+    // Add a new student to the database
+    $latestNis = Student::max('nis');
+    $student = new Student();
+    $student->nis = $latestNis ? $latestNis + 1 : 1001;
+    $student->name = $studentRequest->name;
+    $student->wa_number = $studentRequest->wa_number;
+    $student->gender = $studentRequest->gender;
+    $student->school = $studentRequest->school;
+    $student->enroll_date = $studentRequest->enroll_date;
+    $student->save();
 
-        return response(null, 201);
+    // Enroll the student in one or multiple courses
+    $courses = $studentRequest->courses; // Array of courses
+    foreach ($courses as $course) {
+        $studentCourse = new StudentCourse();
+        $studentCourse->student_id = $student->id;
+        $studentCourse->course_id = $course['course_id'];
+        $studentCourse->custom_payment_rate = $course['custom_payment_rate'] ?? null; // Optional
+        $studentCourse->save();
     }
+
+//   response the student new id and also the courses that the student enroll
+    return response()->json($student->id, 201);
+}
+
 
     /**
      * Display the specified resource.
@@ -70,9 +84,10 @@ class StudentController extends Controller
 public function update(StudentRequest $request, Student $student)
 {
     $validated = $request->validated();
+    // dd($student->id);
     // update the student in the database
     $student->update($validated);
-    return response(null, 204);
+    return response()->json($student->id, 201);
 }
 
 

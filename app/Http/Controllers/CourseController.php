@@ -44,12 +44,23 @@ class CourseController extends Controller
 
 
 
-    public function index()
+   public function index()
+{
+    
+  $courses = Course::paginate(4);
+
+  return response()->json($courses);
+}
+
+
+    public function getCourseBySubject(Request $request)
     {
-        //add new course
-        $courses = Course::paginate(20);
+        $subject = $request->subject;
+        $courses = Course::where('subject', $subject)->get();
         return response()->json($courses);
     }
+
+  
 
     /**
      * Show the form for creating a new resource.
