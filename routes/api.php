@@ -10,13 +10,15 @@ use App\Http\Controllers\StudentController;
 use App\Http\Controllers\TeacherController;
 use App\Http\Controllers\ScheduleController;
 use App\Http\Controllers\AttendanceController;
+use App\Http\Controllers\AuthenticationController;
 use App\Http\Controllers\StudentCourseController;
 use App\Http\Controllers\RecapitulationController;
 
 Route::prefix('v1')->group(function () {
 
     // Authentication
-    Route::post('admin/register',[UserController::class,'register'])->name('user.register');
+    Route::post('/admin/register',[AuthenticationController::class,'register'])->name('user.register');
+    Route::post('/admin/login',[AuthenticationController::class,'login'])->name('user.login');
 
     // Entity API routes
         Route::resource('/students', StudentController::class);
