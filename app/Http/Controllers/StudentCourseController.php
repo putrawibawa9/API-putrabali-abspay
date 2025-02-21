@@ -142,14 +142,7 @@ class StudentCourseController extends Controller
 
     public function getStudentsWithActiveCourse()
 {
-    // Fetch all students with their enrolled courses and pivot data
-    $students = Student::with(['courses' => function ($query) {
-            $query->where('is_active', true); // Filter active courses
-        }])
-        ->whereHas('courses', function ($query) {
-            $query->where('is_active', true);
-        })
-        ->paginate(20);
+    $students = Student::with('activeCourses')->paginate(20);
 
     return response()->json($students);
 }
