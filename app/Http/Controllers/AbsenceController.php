@@ -35,6 +35,7 @@ class AbsenceController extends Controller
      */
 public function store(AbsenceRequest $request)
 {
+    // dd($request->all());
     // create a new meeting record
     $meeting = Meeting::create([
         'course_id' => $request->course_id,
