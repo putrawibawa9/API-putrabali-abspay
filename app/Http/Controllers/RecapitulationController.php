@@ -13,16 +13,17 @@ class RecapitulationController extends Controller
 {
    public function index(Request $request)
 {
+    // dd($request->query('month'));
     // Retrieve month and year from the query parameters
     $month = $request->query('month');
     $year = $request->query('year');
 
-    // Validate the inputs
+    // if there is no request month and year, use the current month and year
     if (!$month || !$year) {
-        return response()->json([
-            'error' => 'Both month and year are required.',
-        ], 400);
+        $month = date('m');
+        $year = date('Y');
     }
+   
 
     // Convert month name to month number if it's not numeric
     if (!is_numeric($month)) {
