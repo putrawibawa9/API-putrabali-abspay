@@ -101,13 +101,19 @@ public function update(StudentRequest $request, Student $student)
         $student->delete();
     }
 
-    public function search(Request $request)
-    {
-        $students = Student::where('name', 'like', '%' . $request->search . '%')
-            ->orWhere('nis', 'like', '%' . $request->search . '%')
-            ->paginate(5);
-        return response()->json($students);
-    }
+   public function search(Request $request)
+{
+ 
+    $search = $request->query('search'); // Use query() for GET requests
+
+    $students = Student::where('name', 'like', '%' . $search . '%')
+        ->orWhere('nis', 'like', '%' . $search . '%')
+        ->paginate(2)
+        ->appends(['search' => $search]); // Append search term to pagination links
+
+    return response()->json($students);
+}
+
 
     public function monthlyEnrolledStudent()
     {
