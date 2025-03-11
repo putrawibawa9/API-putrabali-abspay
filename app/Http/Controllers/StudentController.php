@@ -108,7 +108,7 @@ public function update(StudentRequest $request, Student $student)
 
     $students = Student::where('name', 'like', '%' . $search . '%')
         ->orWhere('nis', 'like', '%' . $search . '%')
-        ->paginate(2)
+        ->paginate(20)
         ->appends(['search' => $search]); // Append search term to pagination links
 
     return response()->json($students);

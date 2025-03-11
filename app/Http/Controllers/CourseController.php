@@ -13,6 +13,7 @@ class CourseController extends Controller
      */
    public function search(Request $request)
 {
+       
     // Initialize a query builder for the Course model
     $query = Course::query();
 
@@ -30,8 +31,9 @@ class CourseController extends Controller
     }
 
     // Retrieve the filtered results
-    $courses = $query->paginate(10);
-
+    $courses = $query->paginate(2)
+        ->appends($request->query());
+    
     // Return 404 and a message if no results are found
     if ($courses->isEmpty()) {
         return response()->json(['message' => 'No courses found'], 404);
@@ -47,7 +49,7 @@ class CourseController extends Controller
    public function index()
 {
     
-  $courses = Course::paginate(10);
+  $courses = Course::paginate(20);
 
   return response()->json($courses);
 }
