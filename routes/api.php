@@ -36,7 +36,7 @@ Route::prefix('v1')->group(function () {
         Route::resource('/absences', AbsenceController::class);
         Route::get('/courses-search', [CourseController::class, 'search']);
         Route::get('/students-search', [StudentController::class, 'search']);
-        Route::post('/teachers/search', [TeacherController::class, 'search']);
+        Route::get('/teachers-search', [TeacherController::class, 'search'])->name('teachers.search');
         Route::get('/student/payment/{id}', [PaymentController::class, 'getStudentPayment']);
         Route::get('/students/schedules/{nim}', [ScheduleController::class, 'getStudentSchedules']);
         Route::get('/course/meeting-history/{id}', [MeetingController::class, 'getMeetingHistory']);

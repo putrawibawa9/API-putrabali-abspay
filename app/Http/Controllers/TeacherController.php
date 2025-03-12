@@ -86,7 +86,8 @@ class TeacherController extends Controller
     {
         $teachers = Teacher::where('name', 'like', '%' . $request->search . '%')
             ->orWhere('alias', 'like', '%' . $request->search . '%')
-            ->paginate(5);
+            ->paginate(5)
+            ->appends($request->query());
         return response()->json($teachers);
     }
 }
