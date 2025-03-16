@@ -4,6 +4,8 @@ namespace App\Http\Requests;
 
 use Log;
 use Illuminate\Foundation\Http\FormRequest;
+use Carbon\Carbon;
+use Illuminate\Validation\Rule;
 
 class StudentRequest extends FormRequest
 {
@@ -25,7 +27,10 @@ public function rules()
     // Get the ID of the student being updated (if it's an update request)
     $studentId = $this->student ? $this->student->id : null;
 
+
     return [
+        // validate date request not to store before the current date
+        'enroll_date' => 'required|date|after_or_equal:today',
         'name' => [
             'sometimes', // Only validate if present in the request
             'required',
@@ -53,12 +58,7 @@ public function rules()
             'string',
             'max:255'
         ],
-        'enroll_date' => [
-            'sometimes',
-            'required',
-            'date',
-            'date_format:Y-m-d'
-        ],
+      
     ];
 }
 

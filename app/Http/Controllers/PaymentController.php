@@ -39,41 +39,34 @@ class PaymentController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-public function store(PaymentRequest $request)
-{
-    // Check if the payment already exists for this specific combination
-    $payment = Payment::where('student_id', $request->student_id)
-        ->where('course_id', $request->course_id)
-        ->where(function ($query) use ($request) {
-            if ($request->type === 'spp') {
-                // For SPP, ensure it matches the specific payment_month
-                $query->where('type', 'spp')
-                      ->where('payment_month', $request->payment_month);
-            } else {
-                // For other types (modul, pendaftaran), check type and NULL payment_month
-                $query->where('type', $request->type)
-                      ->whereNull('payment_month');
+public function store(Request $request)
+    {
+       
+
+        $studentId = $request['student_id'];
+        $courses = $request['courses'];
+
+        foreach ($courses as $courseData) {
+            // Check the type and set payment_amount to 50000 if type is modul, pendaftaran, or ujian
+            if (in_array($courseData['type'], ['modul', 'pendaftaran', 'ujian'])) {
+                $courseData['payment_amount'] = 50000;
+                $courseData['payment_month'] = null;
             }
-        })
-        ->first();
 
-    if ($payment) {
-        // Return unprocessed entity
-        return response()->json(['error' => 'Payment already exists'], 422);
+            Payment::create([
+                'student_id' => $studentId,
+                'course_id' => $courseData['course_id'],
+                'payment_date' => $courseData['payment_date'],
+                'payment_month' => $courseData['payment_month'],
+                'type' => $courseData['type'],
+                'payment_amount' => $courseData['payment_amount'],
+            ]);
+        }
+
+        return response()->json([
+            'message' => 'Payments saved successfully!',
+        ], 201);
     }
-
-    // Add new payment to the database
-    $payment = new Payment();
-    $payment->student_id = $request->student_id;
-    $payment->course_id = $request->course_id;
-    $payment->payment_month = $request->payment_month; // This is only relevant for SPP
-    $payment->payment_amount = $request->payment_amount;
-    $payment->user_id = $request->user_id;
-    $payment->type = $request->type; // Identifies whether it's spp, modul, or pendaftaran
-    $payment->save();
-
-    return response()->json(['message' => 'Payment added successfully'], 200);
-}
 
 
 

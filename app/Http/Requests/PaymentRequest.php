@@ -22,12 +22,13 @@ class PaymentRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'student_id' => 'required|exists:students,id',
-            'course_id' => 'required|exists:courses,id',
-            'payment_amount' => 'required|integer',
-            'payment_month' => 'string',
-            'user_id' => 'required|exists:users,id',
-            'type' => 'required|string',
+             'student_id' => 'required|integer|exists:students,id',
+            'courses' => 'required|array',
+            'courses.*.course_id' => 'required|integer|exists:courses,id',
+            'courses.*.payment_date' => 'required|date',
+            'courses.*.payment_month' => 'required|string',
+            'courses.*.type' => 'required|string',
+            'courses.*.payment_amount' => 'required|numeric',
         ];
     }
 }

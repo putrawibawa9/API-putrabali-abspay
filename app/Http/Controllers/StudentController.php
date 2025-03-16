@@ -34,6 +34,7 @@ class StudentController extends Controller
      */
     public function store(StudentRequest $studentRequest)
 {
+
     // Add a new student to the database
     $latestNis = Student::max('nis');
     $student = new Student();

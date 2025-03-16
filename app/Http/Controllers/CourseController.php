@@ -31,7 +31,7 @@ class CourseController extends Controller
     }
 
     // Retrieve the filtered results
-    $courses = $query->paginate(2)
+    $courses = $query->paginate(10)
         ->appends($request->query());
     
     // Return 404 and a message if no results are found

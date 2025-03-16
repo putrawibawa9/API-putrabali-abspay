@@ -9,6 +9,15 @@ class Payment extends Model
 {
     use HasFactory;
 
+    protected $fillable = [
+        'student_id',
+        'course_id',
+        'payment_date',
+        'payment_month',
+        'type',
+        'payment_amount',
+    
+    ];
     // A payment belongs to a student
     public function student()
     {
