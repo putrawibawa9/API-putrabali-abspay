@@ -142,7 +142,7 @@ class StudentCourseController extends Controller
 
     public function getStudentsWithActiveCourse()
 {
-    $students = Student::with('activeCourses')->paginate(20);
+    $students = Student::with('activeCourses')->latest()->paginate(20);
 
     return response()->json($students);
 }

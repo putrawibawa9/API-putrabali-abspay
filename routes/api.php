@@ -17,7 +17,7 @@ use App\Http\Controllers\RecapitulationController;
 Route::prefix('v1')->group(function () {
 
     // Authentication
-    Route::post('/admin/register',[AuthenticationController::class,'register'])->name('user.register');
+    Route::post('/teacher/login',[AuthenticationController::class,'loginTeacher'])->name('teacher.register');
     Route::post('/admin/login',[AuthenticationController::class,'login'])->name('user.login');
 
     // Entity API routes
@@ -41,6 +41,9 @@ Route::prefix('v1')->group(function () {
         Route::get('/students/schedules/{nim}', [ScheduleController::class, 'getStudentSchedules']);
         Route::get('/course/meeting-history/{id}', [MeetingController::class, 'getMeetingHistory']);
         Route::get('/absences/meeting/{id}', [MeetingController::class, 'getAbsencesByMeetingId']);
+        Route::get('/courses-search', [CourseController::class, 'getCourseBySubject']);
+
+
 
         // Recapitulations
         Route::get('/recapitulations', [RecapitulationController::class, 'index']);

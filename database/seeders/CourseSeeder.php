@@ -70,19 +70,19 @@ class CourseSeeder extends Seeder
         ]);
 
         Course::create([
-            'level' => '7',
+            'level' => '6',
             'section' => 'H',
             'alias' => '6srh',
             'payment_rate' => 80000,
-            'subject' => 'Mapel',
+            'subject' => 'English',
         ]);
 
         Course::create([
-            'level' => '8',
+            'level' => '6',
             'section' => 'I',
-            'alias' => '6sri',
+            'alias' => '6bsri',
             'payment_rate' => 80000,
-            'subject' => 'Math',
+            'subject' => 'Mapel',
         ]);
 
         Course::create([

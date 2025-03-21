@@ -49,7 +49,7 @@ class CourseController extends Controller
    public function index()
 {
     
-  $courses = Course::paginate(20);
+  $courses = Course::latest()->paginate(20);
 
   return response()->json($courses);
 }
@@ -57,6 +57,7 @@ class CourseController extends Controller
 
     public function getCourseBySubject(Request $request)
     {
+        // dd($request->subject);
         $subject = $request->subject;
         $courses = Course::where('subject', $subject)->get();
         return response()->json($courses);
