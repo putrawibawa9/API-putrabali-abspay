@@ -4,7 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\Course;
 use App\Models\Meeting;
+use App\Models\Payment;
 use App\Models\Student;
+use App\Models\StudentCourse;
 use App\Models\Teacher;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Redis;
@@ -46,6 +48,28 @@ class RecapitulationController extends Controller
         $query->whereMonth('created_at', $month)
               ->whereYear('created_at', $year);
     })->count();
+    $persentageOfStudentsWhoPaid = ($totalStudentsWhoPaid / $totalStudents) * 100;
+    // round to 2 decimal places
+    $persentageOfStudentsWhoPaid = round($persentageOfStudentsWhoPaid, 2);
+    $totalStudentsWhoHaveNotPaid = $totalStudents - $totalStudentsWhoPaid;
+    $percentageOfStudentsWhoHaveNotPaid =  ($totalStudentsWhoHaveNotPaid / $totalStudents) * 100;
+    // round to 2 decimal places
+    $percentageOfStudentsWhoHaveNotPaid = round($percentageOfStudentsWhoHaveNotPaid, 2);
+    // Total Revenue in Given Month from payments table
+    $totalRevenue = Payment::whereMonth('created_at', $month)
+        ->whereYear('created_at', $year)
+        ->sum('payment_amount');
+
+    // Percentage of Students Who Are Absent in Given Month
+    $totalStudentsWhoAreAbsent = StudentCourse::whereHas('absences', function ($query) use ($month, $year) {
+        $query->whereMonth('created_at', $month)
+              ->whereYear('created_at', $year)
+              ->where('status', 'absent');
+    })->count();
+    $persentageStudentWhoAreAbsent = ($totalStudentsWhoAreAbsent / $totalStudents) * 100;
+    // round to 2 decimal places
+    $persentageStudentWhoAreAbsent = round($persentageStudentWhoAreAbsent, 2);
+
 
     return response()->json([
         'total_students' => $totalStudents,
@@ -53,7 +77,11 @@ class RecapitulationController extends Controller
         'total_teachers' => $totalTeachers,
         'total_active_courses' => $totalActiveCourses,
         'total_meetings_in_given_month' => $totalMeetingsInGivenMonth,
-        'total_students_who_paid' => $totalStudentsWhoPaid,
+        'total_students_who_paid' => $persentageOfStudentsWhoPaid,
+        'total_students_who_have_not_paid' => $percentageOfStudentsWhoHaveNotPaid,
+        'total_revenue' => $totalRevenue,
+        'total_students_who_are_absent' => $persentageStudentWhoAreAbsent,
+
     ]);
 }
 

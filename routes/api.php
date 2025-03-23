@@ -28,6 +28,7 @@ Route::prefix('v1')->group(function () {
     // Operation API routes
         Route::get('/students-courses/{id}', [StudentCourseController::class, 'show']);
         Route::get('/students-courses', [StudentCourseController::class, 'allEnrolledStudents']);
+        Route::post('/students-courses')
         Route::post('/enrollments', [StudentCourseController::class, 'store']);
         Route::get('/enrollments', [StudentCourseController::class, 'index']);
         Route::delete('/dropouts/{id}', [StudentCourseController::class, 'destroy']);

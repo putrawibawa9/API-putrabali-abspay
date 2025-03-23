@@ -37,5 +37,10 @@ class StudentCourse extends Model
     return $this->hasMany(Absence::class, 'students_courses_id');
 }
 
+public function meetings()
+{
+    return $this->hasMany(Meeting::class, 'students_courses_id');
 
+
+}
 }

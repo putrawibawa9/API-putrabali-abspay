@@ -67,7 +67,7 @@ class StudentController extends Controller
     public function show(Student $student)
     {
     //    check the course that the student enroll
-        $student = Student::where('id', $student->id)->with('activeCourses')->first();
+        $student = Student::where('id', $student->id)->with('activeCourses' )->first();
         return response()->json($student);
     }
 
