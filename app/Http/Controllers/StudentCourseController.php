@@ -37,42 +37,57 @@ class StudentCourseController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StudentCourseRequest $request)
-    {
+  public function store(StudentCourseRequest $request)
+{
+    $student = Student::findOrFail($request->student_id);
+    $responses = [];
 
-        // check if the student is an re-enrolling student
+    foreach ($request->courses as $courseData) {
+        $course = Course::findOrFail($courseData['course_id']);
+        
+        // Check if the student is re-enrolling
         $studentCourse = StudentCourse::where('student_id', $request->student_id)
-            ->where('course_id', $request->course_id)
+            ->where('course_id', $courseData['course_id'])
             ->where('is_active', false)
             ->first();
-        // dd($studentCourse);
+
         if ($studentCourse) {
             $studentCourse->is_active = true;
-            $studentCourse->custom_payment_rate = $request->custom_payment_rate;
+            $studentCourse->custom_payment_rate = $courseData['custom_payment_rate'];
             $studentCourse->save();
-            return response(null, 201);
+            $responses[] = [
+                'course_id' => $courseData['course_id'],
+                'status' => 're-enrolled'
+            ];
+            continue;
         }
-       // Find the student by ID
-    $student = Student::findOrFail($request->student_id);
 
-    // Get the class they are trying to enroll in
-    $course = Course::findOrFail($request->course_id);
+        // Check if student is already enrolled in the same type of class
+        $existingClasses = $student->courses()->where('subject', $course->type)->count();
+        if ($existingClasses >= 1) {
+            $responses[] = [
+                'course_id' => $courseData['course_id'],
+                'status' => "already enrolled in a $course->type class"
+            ];
+            continue;
+        }
 
-    $existingClasses = $student->courses()->where('subject', $course->type)->count();
-
-    if ($existingClasses >= 1) {
-        return response()->json([
-            'message' => "The student is already enrolled in a $course->type class and cannot enroll in another one."
-        ], 422);
+        // Enroll new student-course
+        StudentCourse::create([
+            'student_id' => $request->student_id,
+            'course_id' => $courseData['course_id'],
+            'custom_payment_rate' => $courseData['custom_payment_rate'],
+        ]);
+        
+        $responses[] = [
+            'course_id' => $courseData['course_id'],
+            'status' => 'enrolled'
+        ];
     }
-        $studentCourse = new StudentCourse();
-        $studentCourse->student_id = $request->student_id;
-        $studentCourse->course_id = $request->course_id;
-        $studentCourse->custom_payment_rate = $request->custom_payment_rate;
-        $studentCourse->save();
-        return response(null, 201);
+    
+    return response()->json($responses, 201);
+}
 
-    }
 
     /**
      * Display the specified resource.
@@ -123,9 +138,13 @@ class StudentCourseController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, StudentCourse $studentClass)
-    {
-        //
+    public function update(Request $request)
+    {   
+        dd($request->all());
+       $course = Course::findOrFail($request->course_id);
+        $student = StudentCourse::findOrFail($request->student_id);
+        
+        return response(null, 201);
     }
 
     /**
@@ -133,7 +152,7 @@ class StudentCourseController extends Controller
      */
     public function destroy(StudentCourse $id)
     {
-        
+    
    
     $id->is_active = false;
     $id->save();
