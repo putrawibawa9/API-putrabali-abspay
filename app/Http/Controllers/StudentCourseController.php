@@ -2,11 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\StudentCourseRequest;
 use App\Models\Course;
 use App\Models\Student;
 use Illuminate\Http\Request;
 use App\Models\StudentCourse;
+use App\Http\Requests\StudentCourseRequest;
+use Illuminate\Validation\ValidationException;
 
 class StudentCourseController extends Controller
 {
@@ -37,15 +38,42 @@ class StudentCourseController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-  public function store(StudentCourseRequest $request)
+ public function store(StudentCourseRequest $request)
 {
     $student = Student::findOrFail($request->student_id);
     $responses = [];
 
+    // Count current active courses
+    $currentActiveCount = $student->courses()->wherePivot('is_active', true)->count();
+
+    // Defensive: check if 'courses' exists and is an array
+    if (!is_array($request->courses) || empty($request->courses)) {
+        return response()->json(['error' => 'Invalid or empty courses data.'], 422);
+    }
+
     foreach ($request->courses as $courseData) {
-        $course = Course::findOrFail($courseData['course_id']);
-        
-        // Check if the student is re-enrolling
+        // If limit reached, block
+       
+
+        // Defensive: course_id must exist
+        if (empty($courseData['course_id'])) {
+            $responses[] = [
+                'course_id' => null,
+                'status' => 'course_id missing in request',
+            ];
+            continue;
+        }
+
+        $course = Course::find($courseData['course_id']);
+        if (!$course) {
+            $responses[] = [
+                'course_id' => $courseData['course_id'],
+                'status' => 'course not found',
+            ];
+            continue;
+        }
+
+        // Check if previously enrolled but inactive
         $studentCourse = StudentCourse::where('student_id', $request->student_id)
             ->where('course_id', $courseData['course_id'])
             ->where('is_active', false)
@@ -53,8 +81,9 @@ class StudentCourseController extends Controller
 
         if ($studentCourse) {
             $studentCourse->is_active = true;
-            $studentCourse->custom_payment_rate = $courseData['custom_payment_rate'];
+            $studentCourse->custom_payment_rate = $courseData['custom_payment_rate'] ?? null;
             $studentCourse->save();
+            $currentActiveCount++; // Increase count
             $responses[] = [
                 'course_id' => $courseData['course_id'],
                 'status' => 're-enrolled'
@@ -62,8 +91,12 @@ class StudentCourseController extends Controller
             continue;
         }
 
-        // Check if student is already enrolled in the same type of class
-        $existingClasses = $student->courses()->where('subject', $course->type)->count();
+        // Check for same type already enrolled
+        $existingClasses = $student->courses()
+            ->where('subject', $course->type)
+            ->wherePivot('is_active', true)
+            ->count();
+
         if ($existingClasses >= 1) {
             $responses[] = [
                 'course_id' => $courseData['course_id'],
@@ -72,21 +105,24 @@ class StudentCourseController extends Controller
             continue;
         }
 
-        // Enroll new student-course
+        // Enroll student
         StudentCourse::create([
             'student_id' => $request->student_id,
             'course_id' => $courseData['course_id'],
-            'custom_payment_rate' => $courseData['custom_payment_rate'],
+            'custom_payment_rate' => $courseData['custom_payment_rate'] ?? null,
+            'is_active' => true,
         ]);
-        
+
+        $currentActiveCount++; // Increase count
         $responses[] = [
             'course_id' => $courseData['course_id'],
             'status' => 'enrolled'
         ];
     }
-    
+
     return response()->json($responses, 201);
 }
+
 
 
     /**

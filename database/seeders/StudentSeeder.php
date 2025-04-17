@@ -9,15 +9,6 @@ class StudentSeeder extends Seeder
     public function run()
     {
         Student::create([
-            'nis' => '220030223',
-            'name' => 'I Gede Putra Wibawa',
-            'wa_number' => '081234567890',
-            'gender' => 'male',
-            'school' => 'SMPN 1 Denpasar',
-            'enroll_date' => '2021-01-01'
-        ]);
-
-        Student::create([
             'nis' => '0987654321',
             'name' => 'Ni Luh Putu Ayu',
             'wa_number' => '081234567891',
