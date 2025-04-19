@@ -15,7 +15,7 @@ class RecapitulationController extends Controller
 {
    public function index(Request $request)
 {
-    // dd($request->query('month'));
+    // dd($request->query('year'));
     // Retrieve month and year from the query parameters
     $month = $request->query('month');
     $year = $request->query('year');
@@ -32,11 +32,13 @@ class RecapitulationController extends Controller
         $month = date('m', strtotime($month));
     }
 
+   
+
     // Query based on the month and year
     $totalStudents = Student::count();
-    $totalEnrollStudentsInGivenMonth = Student::whereMonth('created_at', $month)
-        ->whereYear('created_at', $year)
-        ->count();
+    $totalEnrollStudentsInGivenMonth = Student::whereMonth('enroll_date', $month)
+        ->whereYear('enroll_date', $year)
+        ->count();  
     $totalTeachers = Teacher::count();
     $totalActiveCourses = Course::where('is_active', 1)->count();
     $totalMeetingsInGivenMonth = Meeting::whereMonth('created_at', $month)
