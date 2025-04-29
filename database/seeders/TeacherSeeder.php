@@ -162,49 +162,5 @@ Teacher::create([
     'alias' => 'rs',
 ]);
 
-Teacher::create([
-    'name' => 'Budi Santosojoj',
-    'username' => 'username22',
-    'password' => bcrypt('password'),
-    'alias' => 'dp',
-]);
-
-Teacher::create([
-    'name' => 'Budi Sdddtoso',
-    'username' => 'username23',
-    'password' => bcrypt('password'),
-    'alias' => 'es',
-]);
-
-Teacher::create([
-    'name' => 'Budi Santosodasdasfg',
-    'username' => 'username24',
-    'password' => bcrypt('password'),
-    'alias' => 'sw',
-]);
-
-Teacher::create([
-    'name' => 'Budi Santosodasdas',
-    'username' => 'username25',
-    'password' => bcrypt('password'),
-    'alias' => 'gr',
-]);
-
-Teacher::create([
-    'name' => 'Budi Santosaa',
-    'username' => 'username26',
-    'password' => bcrypt('password'),
-    'alias' => 'aw',
-]);
-
-Teacher::create([
-    'name' => 'Budi Santosi',
-    'username' => 'username27',
-    'password' => bcrypt('password'),
-    'alias' => 'ra',
-]);
-
-
-
     }
 }
