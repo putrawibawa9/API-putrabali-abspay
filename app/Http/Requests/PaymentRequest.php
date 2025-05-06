@@ -29,9 +29,9 @@ class PaymentRequest extends FormRequest
             'student_id' => 'required|exists:students,id',
             'courses' => 'required|array',
             'courses.*.course_id' => 'required|exists:courses,id',
-            'courses.*.payment_date' => 'required|date',
+            'courses.*.payment_date' => 'required|date|after_or_equal:today',
             'courses.*.type' => 'required|string',
-            'courses.*.payment_month' => 'required|string',
+            'courses.*.payment_month' => 'sometimes|string',
         ];
 
         // Add custom uniqueness rule for each course
@@ -40,7 +40,7 @@ class PaymentRequest extends FormRequest
                 return $query->where('student_id', $this->input('student_id'))
                              ->where('course_id', $course['course_id'])
                              ->where('type', $course['type'])
-                             ->where('payment_month', $course['payment_month'])
+                             ->where('payment_month', $course['payment_month'] ?? "Select Month")
                              ->whereYear('payment_date', date('Y', strtotime($course['payment_date'])));
             });
         }

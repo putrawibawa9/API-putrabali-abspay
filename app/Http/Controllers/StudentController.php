@@ -52,6 +52,7 @@ class StudentController extends Controller
         $studentCourse = new StudentCourse();
         $studentCourse->student_id = $student->id;
         $studentCourse->course_id = $course['course_id'];
+      
         $studentCourse->custom_payment_rate = $course['custom_payment_rate'] ?? null; // Optional
         $studentCourse->save();
     }

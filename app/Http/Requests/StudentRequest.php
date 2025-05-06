@@ -58,7 +58,8 @@ public function rules()
             'string',
             'max:255'
         ],
-      
+
+    
     ];
 }
 

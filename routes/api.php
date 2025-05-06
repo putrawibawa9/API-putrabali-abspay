@@ -57,4 +57,6 @@ Route::prefix('v1')->group(function () {
         Route::get('/student/absences/history/{id}',  [AbsenceController::class, 'getAbsenceHistory']);
         Route::post('/students/monthly-paid-unpaid',  [PaymentController::class, 'paidAndUnpaidStudentsMonthly']);
         Route::post('/course/monthly/meetings',  [MeetingController::class, 'courseMeetingsbyMonth']);
+
+        Route::post('/payment/create-token', [PaymentController::class , 'createSnapToken'] );
 });
