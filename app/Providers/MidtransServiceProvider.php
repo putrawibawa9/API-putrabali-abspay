@@ -19,9 +19,6 @@ class MidtransServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        \Midtrans\Config::$serverKey = config('contoh');
-    \Midtrans\Config::$isProduction = config('midtrans.is_production');
-    \Midtrans\Config::$isSanitized = true;
-    \Midtrans\Config::$is3ds = true;
+    
     }
 }
