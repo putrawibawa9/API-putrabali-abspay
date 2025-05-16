@@ -30,7 +30,7 @@ public function rules()
 
     return [
         // validate date request not to store before the current date
-        'enroll_date' => 'required|date|after_or_equal:today',
+        'enroll_date' => 'required|date|sometimes',
         'name' => [
             'sometimes', // Only validate if present in the request
             'required',
@@ -44,7 +44,7 @@ public function rules()
             'string',
             'regex:/^\d+$/',
             'max:15',
-            'unique:students,wa_number,' . $studentId
+            // 'unique:students,wa_number,' . $studentId
         ],
         'gender' => [
             'sometimes',

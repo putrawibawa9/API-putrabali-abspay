@@ -13,7 +13,7 @@ class CourseController extends Controller
      */
    public function search(Request $request)
 {
-       
+ 
     // Initialize a query builder for the Course model
     $query = Course::query();
 
@@ -55,7 +55,7 @@ class CourseController extends Controller
 }
 
 
-    public function getCourseBySubject(Request $request)
+    public function courseFilter(Request $request)
     {
         // dd($request->subject);
         $subject = $request->subject;

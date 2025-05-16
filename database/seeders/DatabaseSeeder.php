@@ -24,12 +24,12 @@ class DatabaseSeeder extends Seeder
             StudentSeeder::class,
             CourseSeeder::class,
             TeacherSeeder::class,
-            // PaymentSeeder::class,
+            PaymentSeeder::class,
             StudentCourseSeeder::class,
-            // ScheduleSeeder::class,
+            
             MeetingSeeder::class,
             UserSeeder::class,
-            // AbsenceSeeder::class,
+          
             ]
         );
     }

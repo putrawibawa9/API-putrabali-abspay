@@ -42,7 +42,7 @@ Route::prefix('v1')->group(function () {
         Route::get('/students/schedules/{nim}', [ScheduleController::class, 'getStudentSchedules']);
         Route::get('/course/meeting-history/{id}', [MeetingController::class, 'getMeetingHistory']);
         Route::get('/absences/meeting/{id}', [MeetingController::class, 'getAbsencesByMeetingId']);
-        Route::get('/courses-search', [CourseController::class, 'getCourseBySubject']);
+        Route::get('/courses-filter', [CourseController::class, 'courseFilter']);
 
 
 
