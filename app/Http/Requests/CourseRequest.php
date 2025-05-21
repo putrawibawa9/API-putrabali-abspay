@@ -25,7 +25,9 @@ class CourseRequest extends FormRequest
             'in:English,Mapel',
             Rule::unique('courses')->where(function ($query) {
                 return $query->where('level', $this->level)
-                             ->where('section', $this->section);
+                             ->where('section', $this->section)
+                             ->where('subject', $this->subject)
+                             ->where('alias', $this->alias);
             }),
         ],
         'alias' => 'nullable|string|max:255|unique:courses,alias',

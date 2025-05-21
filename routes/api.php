@@ -27,6 +27,7 @@ Route::prefix('v1')->group(function () {
         Route::get('/student/with-active-course', [StudentCourseController::class, 'getStudentsWithActiveCourse']);
     // Operation API routes
         Route::get('/students-courses/{id}', [StudentCourseController::class, 'show']);
+        Route::post('/students-courses/change-custom-payment-rate/{id}', [StudentCourseController::class, 'changeCustomPaymentRate']);
         Route::get('/students-courses', [StudentCourseController::class, 'allEnrolledStudents']);
         Route::post('/enrollments', [StudentCourseController::class, 'store']);
         Route::post('/enrollments/update', [StudentCourseController::class, 'update']);

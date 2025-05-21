@@ -202,4 +202,14 @@ class StudentCourseController extends Controller
     return response()->json($students);
 }
 
+
+public function changeCustomPaymentRate(Request $request, $id)
+{
+    
+    $studentCourse = StudentCourse::findOrFail($id);
+    $studentCourse->custom_payment_rate = $request->custom_payment_rate;
+    $studentCourse->save();
+
+    return response()->json(['message' => 'Custom payment rate updated successfully.']);
+}
 }
