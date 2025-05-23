@@ -3,9 +3,10 @@
 namespace App\Http\Requests;
 
 use Log;
-use Illuminate\Foundation\Http\FormRequest;
 use Carbon\Carbon;
+use App\Models\Student;
 use Illuminate\Validation\Rule;
+use Illuminate\Foundation\Http\FormRequest;
 
 class StudentRequest extends FormRequest
 {
@@ -61,6 +62,33 @@ public function rules()
 
     
     ];
+}
+
+
+public function withValidator($validator)
+{
+    $validator->after(function ($validator) {
+        $data = $this->only(['name', 'wa_number', 'gender', 'school']);
+
+        if (!isset($data['name'], $data['wa_number'], $data['gender'], $data['school'])) {
+            return; // Skip check if any field is missing (saat PATCH sebagian)
+        }
+
+        // Cek apakah ini update
+        $query = Student::where('name', $data['name'])
+            ->where('wa_number', $data['wa_number'])
+            ->where('gender', $data['gender'])
+            ->where('school', $data['school']);
+
+        if ($this->student) {
+            // Saat update, kecualikan student yang sedang diupdate
+            $query->where('id', '!=', $this->student->id);
+        }
+
+        if ($query->exists()) {
+            $validator->errors()->add('name', 'Murid sudah terdaftar.');
+        }
+    });
 }
 
      

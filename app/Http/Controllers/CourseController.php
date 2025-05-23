@@ -55,13 +55,24 @@ class CourseController extends Controller
 }
 
 
-    public function courseFilter(Request $request)
-    {
-        // dd($request->subject);
-        $subject = $request->subject;
-        $courses = Course::where('subject', $subject)->get();
-        return response()->json($courses);
-    }
+public function courseFilter(Request $request)
+{
+    $subject = $request->subject;
+
+    $courses = Course::where('subject', $subject)->get();
+
+    // Sort custom: numerik dulu, lalu huruf
+    $sorted = $courses->sortBy(function ($course) {
+        // Misal field level = "1a", "2b", dsb
+        preg_match('/^(\d+)([a-zA-Z]*)$/', $course->level, $matches);
+        $number = isset($matches[1]) ? intval($matches[1]) : 0;
+        $letter = isset($matches[2]) ? $matches[2] : '';
+        return [$number, $letter];
+    })->values(); // Reset index
+
+    return response()->json($sorted);
+}
+
 
   
 
@@ -94,16 +105,23 @@ class CourseController extends Controller
      * Display the specified resource.
      */
     public function show(Course $course)
-    {
-            // dd($course);
-        // check if the course is available
-        if (!$course) {
-            return response(null, 404);
-        }
-        // check the course and its student if available
-        $course = Course::where('id', $course->id)->with('students')->first();
-        return response()->json($course);
+{
+    // This null check is unnecessary because Laravel's route model binding already 404s if the model isn't found.
+    // But if you really want to keep it:
+    if (!$course) {
+        return response(null, 404);
     }
+
+    // Eager load students
+    $course->load('students');
+
+    // Add studentCount manually
+    $data = $course->toArray();
+    $data['studentCount'] = $course->students->count();
+
+    return response()->json($data);
+}
+
 
     /**
      * Show the form for editing the specified resource.
