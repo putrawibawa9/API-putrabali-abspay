@@ -85,6 +85,8 @@ class StudentController extends Controller
      */
 public function update(StudentRequest $request, Student $student)
 {
+    // if nothing changed, return the student id
+    
     $validated = $request->validated();
     // dd($student->id);
     // update the student in the database

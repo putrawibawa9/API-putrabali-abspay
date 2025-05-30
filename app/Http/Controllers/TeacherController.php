@@ -2,9 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\TeacherRequest;
 use App\Models\Teacher;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
+use App\Http\Requests\TeacherRequest;
 
 class TeacherController extends Controller
 {
@@ -90,4 +91,31 @@ class TeacherController extends Controller
             ->appends($request->query());
         return response()->json($teachers);
     }
+    
+    public function recapTeacherAbsences($id, Request $request)
+{
+
+    $date = $request->date ?? now()->format('Y-m-d');
+    $parsedDate = Carbon::parse($date);
+
+    $month = $parsedDate->month;
+    $year = $parsedDate->year;
+
+    $teacher = Teacher::with(['meetings' => function ($query) use ($month, $year) {
+        $query->whereMonth('date', $month)
+              ->whereYear('date', $year)
+              ->orderBy('date', 'desc')  // <--- latest meetings first
+              ->with('course');
+    }])->findOrFail($id);
+
+    // Calculate total meetings
+    $totalAbsences = $teacher->meetings->count();
+   return response()->json([
+        'teacher' => $teacher,
+        'total_absences' => $totalAbsences,
+    //   return the month name
+    'month' => $parsedDate->format('F'),
+        'year' => $year,
+    ]);
+}
 }

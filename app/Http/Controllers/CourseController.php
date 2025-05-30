@@ -69,7 +69,7 @@ public function courseFilter(Request $request)
         $letter = isset($matches[2]) ? $matches[2] : '';
         return [$number, $letter];
     })->values(); // Reset index
-
+                        
     return response()->json($sorted);
 }
 
@@ -112,8 +112,10 @@ public function courseFilter(Request $request)
         return response(null, 404);
     }
 
-    // Eager load students
-    $course->load('students');
+    // Eager load students who is still enrolled in the course
+    $course->load(['students' => function ($query) {
+        $query->where('is_active', '1'); // Assuming 'active' is the status for enrolled students
+    }]);
 
     // Add studentCount manually
     $data = $course->toArray();
