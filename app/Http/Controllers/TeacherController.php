@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use DateTime;
 use App\Models\Teacher;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -92,30 +93,36 @@ class TeacherController extends Controller
         return response()->json($teachers);
     }
     
-    public function recapTeacherAbsences($id, Request $request)
+    public function recapTeacherAbsences(Request $request)
 {
+    // use current month and year if not provided
+    if (!$request->has('month')) {
+        $month = Carbon::now()->month;
+        $year = Carbon::now()->year;
+    }else{
 
-    $date = $request->date ?? now()->format('Y-m-d');
-    $parsedDate = Carbon::parse($date);
+        $input = $request->month; // e.g. "2025-05"
+      
+        [$year, $month] = explode('-', $input);
+    }
 
-    $month = $parsedDate->month;
-    $year = $parsedDate->year;
-
+    // dd($month, $year);
+    // Get teacher with filtered meetings
     $teacher = Teacher::with(['meetings' => function ($query) use ($month, $year) {
         $query->whereMonth('date', $month)
               ->whereYear('date', $year)
-              ->orderBy('date', 'desc')  // <--- latest meetings first
+              ->orderBy('date', 'desc')
               ->with('course');
-    }])->findOrFail($id);
+    }])->findOrFail($request->id); // ✅ Fix applied here
 
-    // Calculate total meetings
     $totalAbsences = $teacher->meetings->count();
-   return response()->json([
+
+    return response()->json([
         'teacher' => $teacher,
         'total_absences' => $totalAbsences,
-    //   return the month name
-    'month' => $parsedDate->format('F'),
+        'month' => DateTime::createFromFormat('!m', $month)->format('F'),
         'year' => $year,
     ]);
 }
+
 }
