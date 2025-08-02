@@ -153,6 +153,7 @@ public function store(PaymentRequest $request)
 
 public function getStudentPayment($id)
 {
+ 
     // Get the student with courses and sorted payments using eager loading
     $student = Student::with([
         'activeCourses',

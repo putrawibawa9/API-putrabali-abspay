@@ -96,6 +96,7 @@ class MeetingController extends Controller
 
   public function recapMeetings($courseId)
 {
+    // dd($courseId);
     // Get the course
     $course = Course::findOrFail($courseId);
 
@@ -146,6 +147,30 @@ class MeetingController extends Controller
        
         return response()->json($absences);
             
+    }
+
+    public function dailyRecap()
+    {
+    
+        // Get today's date
+        $today = now()->format('Y-m-d');
+
+        // Fetch meetings for today
+        $meetings = Meeting::whereDate('date', $today)->with('course', 'teacher')->get();
+// dd($meetings);
+        // Transform the data to include course alias and teacher name
+        $meetingsData = $meetings->map(function ($meeting) {
+            return [
+                'id' => $meeting->id,
+                'course_alias' => $meeting->course->alias,
+                'teacher_name' => $meeting->teacher->name,
+                'day' => $meeting->day,
+                'date' => $meeting->date,
+                'time' => $meeting->time,
+            ];
+        });
+
+        return response()->json($meetingsData);
     }
     
 

@@ -2,9 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\CourseRequest;
 use App\Models\Course;
 use Illuminate\Http\Request;
+use App\Http\Requests\CourseRequest;
+use Illuminate\Support\Facades\Validator;
 
 class CourseController extends Controller
 {
@@ -154,6 +155,25 @@ public function courseFilter(Request $request)
         // delete a course from the database
         $course->delete();
     }
+
+   public function searchCoursesByAlias(Request $request)
+{
+    $validator = Validator::make($request->all(), [
+        'alias' => 'required|string|max:255',
+    ]);
+
+    if ($validator->fails()) {
+        return response()->json(['error' => $validator->errors()], 422);
+    }
+
+    $alias = $request->input('alias');
+    $perPage = $request->input('per_page', 30); // bisa diatur dari frontend
+
+    $courses = Course::where('alias', 'like', '%' . $alias . '%')
+        ->paginate($perPage);
+
+    return response()->json($courses);
+}
 
 
 }

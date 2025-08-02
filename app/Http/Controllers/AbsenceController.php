@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Course;
 use App\Models\Absence;
 use App\Models\Meeting;
 use App\Models\Student;
@@ -117,7 +118,6 @@ public function getAbsenceHistory($id)
 
     return response()->json($absenceHistory);
 }
-
 
 
 }

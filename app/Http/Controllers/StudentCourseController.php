@@ -130,6 +130,7 @@ class StudentCourseController extends Controller
      */
    public function show($id)
 {
+    
     // Fetch the student with related courses and custom payment rate
     $studentCourses = StudentCourse::with(['course' => function ($query) {
         // Fetch the course details

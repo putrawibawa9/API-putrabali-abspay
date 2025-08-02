@@ -45,6 +45,8 @@ Route::prefix('v1')->group(function () {
         Route::get('/absences/meeting/{id}', [MeetingController::class, 'getAbsencesByMeetingId']);
         Route::get('/courses-filter', [CourseController::class, 'courseFilter']);
 
+  
+        Route::get('/courses-search-by-alias', [CourseController::class, 'searchCoursesByAlias']);
 
 
         // Recapitulations
@@ -59,5 +61,7 @@ Route::prefix('v1')->group(function () {
         Route::post('/students/monthly-paid-unpaid',  [PaymentController::class, 'paidAndUnpaidStudentsMonthly']);
         Route::post('/course/monthly/meetings',  [MeetingController::class, 'courseMeetingsbyMonth']);
         Route::get('/recap-teacher-absences' , [TeacherController::class, 'recapTeacherAbsences']);
+
+        Route::get('/meetings-daily-recap', [MeetingController::class, 'dailyRecap']);
         // Route::get('/kontol',[TeacherController::class, 'recapTeacherAbsences']);
 });
