@@ -149,29 +149,29 @@ class MeetingController extends Controller
             
     }
 
-    public function dailyRecap()
-    {
-    
-        // Get today's date
-        $today = now()->format('Y-m-d');
+   public function dailyRecap(Request $request)
+{
+    // Ambil parameter tanggal dari query, kalau tidak ada pakai hari ini
+    $date = $request->query('date', now()->format('Y-m-d'));
 
-        // Fetch meetings for today
-        $meetings = Meeting::whereDate('date', $today)->with('course', 'teacher')->get();
-// dd($meetings);
-        // Transform the data to include course alias and teacher name
-        $meetingsData = $meetings->map(function ($meeting) {
-            return [
-                'id' => $meeting->id,
-                'course_alias' => $meeting->course->alias,
-                'teacher_name' => $meeting->teacher->name,
-                'day' => $meeting->day,
-                'date' => $meeting->date,
-                'time' => $meeting->time,
-            ];
-        });
+    // Ambil data meeting berdasarkan tanggal
+    $meetings = Meeting::whereDate('date', $date)->with('course', 'teacher')->get();
 
-        return response()->json($meetingsData);
-    }
+    // Transformasi data
+    $meetingsData = $meetings->map(function ($meeting) {
+        return [
+            'id' => $meeting->id,
+            'course_alias' => $meeting->course->alias,
+            'teacher_name' => $meeting->teacher->name,
+            'day' => $meeting->day,
+            'date' => $meeting->date,
+            'time' => $meeting->time,
+        ];
+    });
+
+    return response()->json($meetingsData);
+}
+
     
 
 }
