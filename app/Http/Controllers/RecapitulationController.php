@@ -6,9 +6,10 @@ use App\Models\Course;
 use App\Models\Meeting;
 use App\Models\Payment;
 use App\Models\Student;
-use App\Models\StudentCourse;
 use App\Models\Teacher;
 use Illuminate\Http\Request;
+use App\Models\StudentCourse;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Redis;
 
 class RecapitulationController extends Controller
@@ -35,7 +36,11 @@ class RecapitulationController extends Controller
    
 
     // Query based on the month and year
-    $totalStudents = Student::count();
+   $totalStudents = DB::table('students_courses')
+    ->where('is_active', 1)
+    ->distinct('student_id')
+    ->count('student_id');
+
     $totalEnrollStudentsInGivenMonth = Student::whereMonth('enroll_date', $month)
         ->whereYear('enroll_date', $year)
         ->count();  
