@@ -162,6 +162,7 @@ class MeetingController extends Controller
         return [
             'id' => $meeting->id,
             'course_alias' => $meeting->course->alias,
+            'course_teacher_fee' => $meeting->course->teaching_rate,
             'teacher_name' => $meeting->teacher->name,
             'day' => $meeting->day,
             'date' => $meeting->date,
