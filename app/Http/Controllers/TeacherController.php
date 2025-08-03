@@ -93,36 +93,40 @@ class TeacherController extends Controller
         return response()->json($teachers);
     }
     
-    public function recapTeacherAbsences(Request $request)
+   public function recapTeacherAbsences(Request $request)
 {
     // use current month and year if not provided
     if (!$request->has('month')) {
         $month = Carbon::now()->month;
         $year = Carbon::now()->year;
-    }else{
-
+    } else {
         $input = $request->month; // e.g. "2025-05"
-      
         [$year, $month] = explode('-', $input);
     }
 
-    // dd($month, $year);
-    // Get teacher with filtered meetings
+    // Get teacher with filtered meetings and their course
     $teacher = Teacher::with(['meetings' => function ($query) use ($month, $year) {
         $query->whereMonth('date', $month)
               ->whereYear('date', $year)
               ->orderBy('date', 'desc')
               ->with('course');
-    }])->findOrFail($request->id); // ✅ Fix applied here
+    }])->findOrFail($request->id);
 
     $totalAbsences = $teacher->meetings->count();
+
+    // ✅ Tambahkan perhitungan total_fee dari teaching_rate
+    $totalFee = $teacher->meetings->sum(function ($meeting) {
+        return $meeting->course->teaching_rate ?? 0;
+    });
 
     return response()->json([
         'teacher' => $teacher,
         'total_absences' => $totalAbsences,
+        'total_fee' => $totalFee, // ✅ tidak mengganggu bagian lain
         'month' => DateTime::createFromFormat('!m', $month)->format('F'),
         'year' => $year,
     ]);
 }
+
 
 }
