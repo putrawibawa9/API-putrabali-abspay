@@ -89,18 +89,35 @@ public function courseFilter(Request $request)
      * Store a newly created resource in storage.
      */
     public function store(CourseRequest $request)
-    {
-        // Add new course to the database
-        $course = new Course();
-        $course->level = $request->level;
-        $course->section = $request->section;
-        $course->subject = $request->subject;
-        $course->alias = $request->alias;
-        $course->payment_rate = $request->payment_rate;
-        $course->save();
+{
+    $course = new Course();
+    $course->level = $request->level;
+    $course->section = $request->section;
+    $course->subject = $request->subject;
+    $course->alias = $request->alias;
+    $course->payment_rate = $request->payment_rate;
 
-        return response(null, 201);
+    // Set teaching_rate otomatis berdasarkan level
+    $course->teaching_rate = $this->getTeachingRateByLevel($request->level);
+
+    $course->save();
+
+    return response(null, 201);
+}
+
+    private function getTeachingRateByLevel($level)
+{
+    if ($level >= 0 && $level <= 6) {
+        return 30000;
+    } elseif ($level >= 7 && $level <= 9) {
+        return 35000;
+    } elseif ($level > 9) {
+        return 40000;
+    } else {
+        return 0; // fallback untuk level tidak valid
     }
+}
+
 
     /**
      * Display the specified resource.
@@ -137,13 +154,19 @@ public function courseFilter(Request $request)
     /**
      * Update the specified resource in storage.
      */
-    public function update(CourseRequest $request, Course $course)
-    {
-        $validated = $request->validated();
-    // update the student in the database
+  public function update(CourseRequest $request, Course $course)
+{
+    // Validasi input
+    $validated = $request->validated();
+    // Hitung teaching_rate berdasarkan level
+    $validated['teaching_rate'] = $this->getTeachingRateByLevel($validated['level']);
+
+    // Update course di database
     $course->update($validated);
-    return response(null, 204);
-    }
+    
+    return response()->noContent(); // response(null, 204)
+}
+
 
 
 
