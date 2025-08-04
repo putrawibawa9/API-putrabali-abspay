@@ -25,7 +25,7 @@ class AbsenceRequest extends FormRequest
 {
     return [
         'day' => 'required|string',
-        'date' => 'required|date|after_or_equal:today',
+        'date' => 'required|date',
         'time' => 'required|string',
         'course_id' => 'required|exists:courses,id',
         'teacher_id' => 'required|exists:teachers,id',
