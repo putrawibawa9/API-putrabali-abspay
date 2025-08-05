@@ -4,7 +4,7 @@ namespace App\Http\Requests;
 use Illuminate\Validation\Rule;
 use Illuminate\Foundation\Http\FormRequest;
 
-class CourseRequest extends FormRequest
+class StoreCourseRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -26,8 +26,8 @@ class CourseRequest extends FormRequest
             Rule::unique('courses')->where(function ($query) {
                 return $query->where('level', $this->level)
                              ->where('section', $this->section)
-                             ->where('subject', $this->subject)
-                             ->where('alias', $this->alias);
+                             ->where('subject', $this->subject);
+                           
             }),
         ],
         'alias' => 'nullable|string|max:255|unique:courses,alias',
@@ -40,7 +40,7 @@ class CourseRequest extends FormRequest
         return [
     //    return error message if the combination of level, section, and subject already exists
             'subject.unique' => 'Kelas sudah ada',
-            'alias.unique' => 'Alias sudah ada',
+            'alias.unique' => 'Kelas sudah ada',
         ];
     }
 

@@ -5,7 +5,9 @@ namespace App\Http\Controllers;
 use App\Models\Course;
 use Illuminate\Http\Request;
 use App\Http\Requests\CourseRequest;
+use App\Http\Requests\StoreCourseRequest;
 use Illuminate\Support\Facades\Validator;
+use App\Http\Requests\UpdateCourseRequest;
 
 class CourseController extends Controller
 {
@@ -88,7 +90,7 @@ public function courseFilter(Request $request)
     /**
      * Store a newly created resource in storage.
      */
-    public function store(CourseRequest $request)
+    public function store(StoreCourseRequest $request)
 {
     $course = new Course();
     $course->level = $request->level;
@@ -154,15 +156,15 @@ public function courseFilter(Request $request)
     /**
      * Update the specified resource in storage.
      */
-  public function update(CourseRequest $request, Course $course)
+  public function update(Request $request, Course $course)
 {
     // Validasi input
-    $validated = $request->validated();
+   
     // Hitung teaching_rate berdasarkan level
-    $validated['teaching_rate'] = $this->getTeachingRateByLevel($validated['level']);
+    $request['teaching_rate'] = $this->getTeachingRateByLevel($request['level']);
 
     // Update course di database
-    $course->update($validated);
+    $course->update($request->all());
     
     return response()->noContent(); // response(null, 204)
 }
