@@ -51,6 +51,7 @@ Route::prefix('v1')->group(function () {
 
         // Recapitulations
         Route::get('/recapitulations', [RecapitulationController::class, 'index']);
+        
         Route::get('/meetings/recap/{courseId}', [MeetingController::class, 'recapMeetings']);
         Route::get('/meetings/recap/{courseId}/{month}', [MeetingController::class, 'recapMeetingsByMonth']);
         Route::get('/payments/recap/{studentId}/{year}', [PaymentController::class, 'recapStudentPayments']);

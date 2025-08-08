@@ -21,6 +21,13 @@ class RecapitulationController extends Controller
     $month = $request->query('month');
     $year = $request->query('year');
 
+    $expectedIncome = DB::table('students_courses as sc')
+    ->join('courses as c', 'c.id', '=', 'sc.course_id')
+    ->where('sc.is_active', 1)
+    ->where('c.is_active', 1)
+    ->sum(DB::raw('COALESCE(sc.custom_payment_rate, c.payment_rate)'));
+
+$formatted = 'Rp ' . number_format($expectedIncome, 0, ',', '.');
     // if there is no request month and year, use the current month and year
     if (!$month || !$year) {
         $month = date('m');
@@ -88,7 +95,7 @@ class RecapitulationController extends Controller
         'total_students_who_have_not_paid' => $percentageOfStudentsWhoHaveNotPaid,
         'total_revenue' => $totalRevenue,
         'total_students_who_are_absent' => $persentageStudentWhoAreAbsent,
-
+        'expected_income' => $formatted,
     ]);
 }
 
