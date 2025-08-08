@@ -17,7 +17,7 @@ class TeacherController extends Controller
     {
         // paginate and latest data first
 
-        $teachers = Teacher::latest()->paginate(20);
+        $teachers = Teacher::latest()->paginate(50);
         return response()->json($teachers);
     }
 
