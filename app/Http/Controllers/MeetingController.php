@@ -142,8 +142,8 @@ class MeetingController extends Controller
 // get absence based on meeting id
     public function getAbsencesByMeetingId($meetingId)
     {
-        // return only the student name that is present in the meeting
-        $absences = Meeting::find($meetingId)->absences()->where('status', 'present')->with('studentCourse.student')->get();
+        // return only the student name in the meeting
+        $absences = Meeting::find($meetingId)->absences()->with('studentCourse.student')->get();
        
         return response()->json($absences);
             
