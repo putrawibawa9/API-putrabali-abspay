@@ -227,7 +227,30 @@ public function paymentRecap(Request $request)
         ]);
     }
 
-  
+  public function dailyRecap(Request $request){
+    $startDate = $request->query('start_date', now()->format('Y-m-d'));
+    $endDate = $request->query('end_date', $startDate); // jika tidak ada end_date, pakai start_date
+
+    // Query dasar
+    $query = Payment::with(['student', 'course'])
+        ->whereBetween('created_at', [$startDate, $endDate]);
+
+    // Eksekusi query
+    $payments = $query->get();
+
+    // Transformasi data
+    $paymentsData = $payments->map(function ($payment) {
+        return [
+            'id' => $payment->id,
+            'student_name' => $payment->student->name,
+            'course_alias' => $payment->course->alias,
+            'payment_amount' => $payment->payment_amount,
+            'payment_date' => $payment->created_at->format('Y-m-d'),
+        ];
+    });
+
+    return response()->json($paymentsData);
+  }
     
 
 }
