@@ -238,6 +238,9 @@ public function paymentRecap(Request $request)
     // Eksekusi query
     $payments = $query->get();
 
+    // total payment amount
+    $totalPaymentAmount = $payments->sum('payment_amount');
+
     // Transformasi data
     $paymentsData = $payments->map(function ($payment) {
         return [
@@ -249,7 +252,10 @@ public function paymentRecap(Request $request)
         ];
     });
 
-    return response()->json($paymentsData);
+    return response()->json([
+        'total_payment' => $totalPaymentAmount,
+        'payments' => $paymentsData,
+    ]);
   }
     
 
