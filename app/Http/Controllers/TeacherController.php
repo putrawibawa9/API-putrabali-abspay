@@ -108,7 +108,7 @@ class TeacherController extends Controller
     $teacher = Teacher::with(['meetings' => function ($query) use ($month, $year) {
         $query->whereMonth('date', $month)
               ->whereYear('date', $year)
-              ->orderBy('date', 'desc')
+              ->orderBy('created_at', 'desc')
               ->with('course');
     }])->findOrFail($request->id);
 

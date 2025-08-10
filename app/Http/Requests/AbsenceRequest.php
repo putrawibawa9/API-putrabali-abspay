@@ -21,34 +21,55 @@ class AbsenceRequest extends FormRequest
      *
      * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
      */
-   public function rules(): array
+  public function rules(): array
 {
+    $routeMeeting = $this->route('meeting');
+    $currentId = is_object($routeMeeting) ? ($routeMeeting->id ?? null) : $routeMeeting;
+
     return [
-        'day' => 'required|string',
-        'date' => 'required|date',
-        'time' => 'required|string',
-        'course_id' => 'required|exists:courses,id',
-        'teacher_id' => 'required|exists:teachers,id',
-        'attendances' => 'required|array',
-        'attendances.*.students_courses_id' => 'required|exists:students_courses,id',
-        'attendances.*.status' => 'required|string',
-        
-        // Custom rule to check uniqueness
-        '*' => [
-            function ($attribute, $value, $fail) {
+        'day'   => 'required|string',
+        'date'  => 'required|date',
+        'time'  => [
+            'required','date_format:H:i',
+            // Guru yang sama tidak boleh double-book di slot yang sama
+            function ($attribute, $value, $fail) use ($currentId) {
                 $exists = DB::table('meetings')
-                    ->where('day', $this->day)
-                    ->where('date', $this->date)
-                    ->where('time', $this->time)
-                    ->where('course_id', $this->course_id)
                     ->where('teacher_id', $this->teacher_id)
+                    ->where('date', $this->date)
+                    ->where('time', $value)
+                    ->when($currentId, fn($q) => $q->where('id', '!=', $currentId))
                     ->exists();
 
                 if ($exists) {
-                    $fail('Kelas ini sudah diabsen pada waktu tersebut.');
+                    $fail('Anda sudah mengisi absen pada jam dan tanggal ini. Silahkan periksa riwayat mengajar anda');
                 }
-            }
+            },
         ],
+
+        'course_id' => [
+            'required','exists:courses,id',
+            // Kelas yang sama tidak boleh diisi lagi (oleh guru mana pun) pada slot yang sama
+            function ($attribute, $value, $fail) use ($currentId) {
+                $conflict = DB::table('meetings')
+                    ->where('course_id', $value)
+                    ->where('date', $this->date)
+                    ->where('time', $this->time)
+                    ->when($currentId, fn($q) => $q->where('id', '!=', $currentId))
+                    ->exists();
+
+                if ($conflict) {
+                    $fail('Kelas ini sudah diabsen oleh guru lain.');
+                }
+            },
+        ],
+
+        'teacher_id'  => 'required|exists:teachers,id',
+        'attendances' => 'required|array',
+        'attendances.*.students_courses_id' => 'required|exists:students_courses,id',
+        'attendances.*.status'              => 'required|string',
     ];
 }
+
+
+
 }

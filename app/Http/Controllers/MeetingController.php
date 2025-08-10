@@ -101,7 +101,7 @@ class MeetingController extends Controller
     $course = Course::findOrFail($courseId);
 
     // Paginate meetings
-    $meetings = Meeting::where('course_id', $courseId)->orderBy('created_at', 'desc')->paginate(20); // Change 20 to your desired items per page
+    $meetings = Meeting::where('course_id', $courseId)->orderBy('created_at', 'desc')->paginate(100); // Change 20 to your desired items per page
 
     // Transform the data
     $meetings->getCollection()->transform(function ($meeting) {
@@ -109,6 +109,7 @@ class MeetingController extends Controller
             'id' => $meeting->id,
             'day' => $meeting->day,
             'date' => $meeting->date,
+            'time' => $meeting->time,
             'teacher' => $meeting->teacher->name,
         ];
     });
@@ -158,8 +159,12 @@ class MeetingController extends Controller
     $teacherId = $request->query('teacher_id');
 
     // Query dasar
-    $query = Meeting::with(['course', 'teacher'])
-        ->whereBetween('date', [$startDate, $endDate]);
+   // Query dasar + urut terbaru dulu (tanggal & jam)
+$query = Meeting::with(['course', 'teacher'])
+    ->whereBetween('date', [$startDate, $endDate])
+    ->latest(); // = orderBy('created_at','desc')
+
+
 
     // Filter guru jika ada
     if ($teacherId) {
