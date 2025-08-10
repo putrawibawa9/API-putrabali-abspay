@@ -54,7 +54,7 @@ class PaymentRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'courses.*.course_id.unique' => 'A payment record with the same student, course, type, and month already exists for this year.',
+            'courses.*.course_id.unique' => 'Murid telah tercatat membayar bulan ' . ($this->input('courses.0.payment_month') ?? "Bulan Tidak Diketahui") . '.',
         ];
     }
 }
