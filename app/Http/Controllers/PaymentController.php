@@ -88,6 +88,7 @@ public function store(PaymentRequest $request)
                 'payment_month' => $courseData['payment_month'],
                 'type' => $courseData['type'],
                 'payment_amount' => $courseData['payment_amount'],
+                'user_id' => $request->user_id, // Assuming user_id is passed in the request
             ]);
         }
 
@@ -229,15 +230,15 @@ public function paymentRecap(Request $request)
 
   public function dailyRecap(Request $request){
     $startDate = $request->query('start_date', now()->format('Y-m-d'));
-    $endDate = $request->query('end_date', $startDate); // jika tidak ada end_date, pakai start_date
-
+    $endDate = $request->query('end_date', now()->format('Y-m-d')); // jika tidak ada end_date, pakai start_date
+// dd($startDate, $endDate);
     // Query dasar
     $query = Payment::with(['student', 'course'])
-        ->whereBetween('created_at', [$startDate, $endDate]);
+        ->whereBetween('payment_date', [$startDate, $endDate]);
 
     // Eksekusi query
     $payments = $query->get();
-
+// dd($payments);
     // total payment amount
     $totalPaymentAmount = $payments->sum('payment_amount');
 
@@ -249,6 +250,7 @@ public function paymentRecap(Request $request)
             'course_alias' => $payment->course->alias,
             'payment_amount' => $payment->payment_amount,
             'payment_date' => $payment->created_at->format('Y-m-d'),
+            'admin_name' => $payment->user->name ?? 'Unknown',
         ];
     });
 
