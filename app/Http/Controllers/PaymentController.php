@@ -16,31 +16,32 @@ class PaymentController extends Controller
      * Display a listing of the resource.
      */
 
-     public function createSnapToken(Request $request)
-{
-// dd(env('MIDTRANS_SERVER_KEY'));
-// Set your Merchant Server Key
-\Midtrans\Config::$serverKey = config('midtrans.serverKey');
-// Set to Development/Sandbox Environment (default). Set to true for Production Environment (accept real transaction).
-\Midtrans\Config::$isProduction = false;
-// Set sanitization on (default)
-\Midtrans\Config::$isSanitized = true;
-// Set 3DS transaction for credit card to true
-\Midtrans\Config::$is3ds = true;
-   
-    $params = array(
-    'transaction_details' => array(
-        'order_id' => rand(),
-        'gross_amount' => 10000,
-    )
-);
+    public function generateReceipt($id)
+    {
+        // get payment with student name
+        $payment = Payment::where('id', $id)
+            ->with(['student', 'course', 'user']) // Assuming 'user' is the admin who processed the payment
+            ->first();
+        // 
 
-$snapToken = \Midtrans\Snap::getSnapToken($params);
+        if (!$payment) {
+            return response()->json(['error' => 'Payment not found'], 404);
+        }
+      
+        // Generate receipt logic here
+        $receipt = [
+            'id' => $payment->id,
+            'student_name' => $payment->student->name,
+            'type' => $payment->type,
+            'payment_month' => $payment->payment_month ?? '-',
+            'course_name' => $payment->course->alias,
+            'amount' => $payment->payment_amount,
+            'date' => $payment->payment_date,
+            'admin' => $payment->user->name ?? 'admin pb',
+        ];
 
-    return response()->json([
-        'snap_token' => $snapToken,
-    ]);
-}
+        return response()->json($receipt);
+    }
 
 
     public function index()
