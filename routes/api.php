@@ -65,5 +65,7 @@ Route::prefix('v1')->group(function () {
 
         Route::get('/meetings-daily-recap', [MeetingController::class, 'dailyRecap']);
         Route::get('/payments-daily-recap', [PaymentController::class, 'dailyRecap']);
+        Route::get('/payments/{id}/receipt', [PaymentController::class, 'generateReceipt'])
+    ->name('payments.receipt');
         // Route::get('/kontol',[TeacherController::class, 'recapTeacherAbsences']);
 });
