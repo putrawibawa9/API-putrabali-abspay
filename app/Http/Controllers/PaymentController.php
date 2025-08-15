@@ -237,7 +237,7 @@ public function paymentRecap(Request $request)
         ->whereBetween('payment_date', [$startDate, $endDate]);
 
     // Eksekusi query
-    $payments = $query->get();
+    $payments = $query->latest()->get();
 // dd($payments);
     // total payment amount
     $totalPaymentAmount = $payments->sum('payment_amount');
