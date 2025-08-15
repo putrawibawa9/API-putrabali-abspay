@@ -16,7 +16,7 @@ class Payment extends Model
         'payment_month',
         'type',
         'payment_amount',
-    
+        'user_id', // Added user_id to fillable attributes
     ];
     // A payment belongs to a student
     public function student()

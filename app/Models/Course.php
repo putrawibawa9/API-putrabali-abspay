@@ -15,6 +15,7 @@ class Course extends Model
         'subject',
         'alias',
         'payment_rate',
+        'teaching_rate', // Added teaching_rate field
     ];
 
     public function meetings()

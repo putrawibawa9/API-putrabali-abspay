@@ -42,8 +42,9 @@ public function activeCourses()
 {
     return $this->belongsToMany(Course::class, 'students_courses', 'student_id', 'course_id')
                 ->wherePivot('is_active', true)
-                ->withPivot('custom_payment_rate'); // Include the custom_payment_rate
+                ->withPivot('id','custom_payment_rate'); // Include the custom_payment_rate
 }
+
 
 
 

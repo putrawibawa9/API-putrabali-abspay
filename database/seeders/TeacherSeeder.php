@@ -13,12 +13,7 @@ class TeacherSeeder extends Seeder
      */
     public function run(): void
     {
-        Teacher::create([
-    'name' => 'Meirawati',
-    'username' => 'username1',
-    'password' => bcrypt('password'),
-    'alias' => 'mr',
-]);
+       
 
 Teacher::create([
     'name' => 'Budi Santoso',
@@ -166,50 +161,6 @@ Teacher::create([
     'password' => bcrypt('password'),
     'alias' => 'rs',
 ]);
-
-Teacher::create([
-    'name' => 'Budi Santosojoj',
-    'username' => 'username22',
-    'password' => bcrypt('password'),
-    'alias' => 'dp',
-]);
-
-Teacher::create([
-    'name' => 'Budi Sdddtoso',
-    'username' => 'username23',
-    'password' => bcrypt('password'),
-    'alias' => 'es',
-]);
-
-Teacher::create([
-    'name' => 'Budi Santosodasdasfg',
-    'username' => 'username24',
-    'password' => bcrypt('password'),
-    'alias' => 'sw',
-]);
-
-Teacher::create([
-    'name' => 'Budi Santosodasdas',
-    'username' => 'username25',
-    'password' => bcrypt('password'),
-    'alias' => 'gr',
-]);
-
-Teacher::create([
-    'name' => 'Budi Santosaa',
-    'username' => 'username26',
-    'password' => bcrypt('password'),
-    'alias' => 'aw',
-]);
-
-Teacher::create([
-    'name' => 'Budi Santosi',
-    'username' => 'username27',
-    'password' => bcrypt('password'),
-    'alias' => 'ra',
-]);
-
-
 
     }
 }

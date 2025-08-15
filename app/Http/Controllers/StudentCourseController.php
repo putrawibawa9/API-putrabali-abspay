@@ -2,11 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\StudentCourseRequest;
 use App\Models\Course;
 use App\Models\Student;
 use Illuminate\Http\Request;
 use App\Models\StudentCourse;
+use App\Http\Requests\StudentCourseRequest;
+use Illuminate\Validation\ValidationException;
 
 class StudentCourseController extends Controller
 {
@@ -37,48 +38,99 @@ class StudentCourseController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StudentCourseRequest $request)
-    {
+ public function store(StudentCourseRequest $request)
+{
+    $student = Student::findOrFail($request->student_id);
+    $responses = [];
 
-        // check if the student is an re-enrolling student
+    // Count current active courses
+    $currentActiveCount = $student->courses()->wherePivot('is_active', true)->count();
+
+    // Defensive: check if 'courses' exists and is an array
+    if (!is_array($request->courses) || empty($request->courses)) {
+        return response()->json(['error' => 'Invalid or empty courses data.'], 422);
+    }
+
+    foreach ($request->courses as $courseData) {
+        // If limit reached, block
+       
+
+        // Defensive: course_id must exist
+        if (empty($courseData['course_id'])) {
+            $responses[] = [
+                'course_id' => null,
+                'status' => 'course_id missing in request',
+            ];
+            continue;
+        }
+
+        $course = Course::find($courseData['course_id']);
+        if (!$course) {
+            $responses[] = [
+                'course_id' => $courseData['course_id'],
+                'status' => 'course not found',
+            ];
+            continue;
+        }
+
+        // Check if previously enrolled but inactive
         $studentCourse = StudentCourse::where('student_id', $request->student_id)
-            ->where('course_id', $request->course_id)
+            ->where('course_id', $courseData['course_id'])
             ->where('is_active', false)
             ->first();
-        // dd($studentCourse);
+
         if ($studentCourse) {
             $studentCourse->is_active = true;
-            $studentCourse->custom_payment_rate = $request->custom_payment_rate;
+            $studentCourse->custom_payment_rate = $courseData['custom_payment_rate'] ?? null;
             $studentCourse->save();
-            return response(null, 201);
+            $currentActiveCount++; // Increase count
+            $responses[] = [
+                'course_id' => $courseData['course_id'],
+                'status' => 're-enrolled'
+            ];
+            continue;
         }
-       // Find the student by ID
-    $student = Student::findOrFail($request->student_id);
 
-    // Get the class they are trying to enroll in
-    $course = Course::findOrFail($request->course_id);
+        // Check for same type already enrolled
+        $existingClasses = $student->courses()
+            ->where('subject', $course->type)
+            ->wherePivot('is_active', true)
+            ->count();
 
-    $existingClasses = $student->courses()->where('subject', $course->type)->count();
+        if ($existingClasses >= 1) {
+            $responses[] = [
+                'course_id' => $courseData['course_id'],
+                'status' => "already enrolled in a $course->type class"
+            ];
+            continue;
+        }
 
-    if ($existingClasses >= 1) {
-        return response()->json([
-            'message' => "The student is already enrolled in a $course->type class and cannot enroll in another one."
-        ], 422);
+        // Enroll student
+        StudentCourse::create([
+            'student_id' => $request->student_id,
+            'course_id' => $courseData['course_id'],
+            'custom_payment_rate' => $courseData['custom_payment_rate'] ?? null,
+            'is_active' => true,
+        ]);
+
+        $currentActiveCount++; // Increase count
+        $responses[] = [
+            'course_id' => $courseData['course_id'],
+            'status' => 'enrolled'
+        ];
     }
-        $studentCourse = new StudentCourse();
-        $studentCourse->student_id = $request->student_id;
-        $studentCourse->course_id = $request->course_id;
-        $studentCourse->custom_payment_rate = $request->custom_payment_rate;
-        $studentCourse->save();
-        return response(null, 201);
 
-    }
+    return response()->json($responses, 201);
+}
+
+
 
     /**
      * Display the specified resource.
      */
    public function show($id)
 {
+    
     // Fetch the student with related courses and custom payment rate
     $studentCourses = StudentCourse::with(['course' => function ($query) {
         // Fetch the course details
@@ -123,9 +175,13 @@ class StudentCourseController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, StudentCourse $studentClass)
-    {
-        //
+    public function update(Request $request)
+    {   
+        dd($request->all());
+       $course = Course::findOrFail($request->course_id);
+        $student = StudentCourse::findOrFail($request->student_id);
+        
+        return response(null, 201);
     }
 
     /**
@@ -133,7 +189,7 @@ class StudentCourseController extends Controller
      */
     public function destroy(StudentCourse $id)
     {
-        
+    
    
     $id->is_active = false;
     $id->save();
@@ -142,9 +198,19 @@ class StudentCourseController extends Controller
 
     public function getStudentsWithActiveCourse()
 {
-    $students = Student::with('activeCourses')->paginate(20);
+    $students = Student::with('activeCourses')->latest()->paginate(20);
 
     return response()->json($students);
 }
 
+
+public function changeCustomPaymentRate(Request $request, $id)
+{
+    
+    $studentCourse = StudentCourse::findOrFail($id);
+    $studentCourse->custom_payment_rate = $request->custom_payment_rate;
+    $studentCourse->save();
+
+    return response()->json(['message' => 'Custom payment rate updated successfully.']);
+}
 }

@@ -17,7 +17,7 @@ use App\Http\Controllers\RecapitulationController;
 Route::prefix('v1')->group(function () {
 
     // Authentication
-    Route::post('/admin/register',[AuthenticationController::class,'register'])->name('user.register');
+    Route::post('/teacher/login',[AuthenticationController::class,'loginTeacher'])->name('teacher.register');
     Route::post('/admin/login',[AuthenticationController::class,'login'])->name('user.login');
 
     // Entity API routes
@@ -27,8 +27,10 @@ Route::prefix('v1')->group(function () {
         Route::get('/student/with-active-course', [StudentCourseController::class, 'getStudentsWithActiveCourse']);
     // Operation API routes
         Route::get('/students-courses/{id}', [StudentCourseController::class, 'show']);
+        Route::post('/students-courses/change-custom-payment-rate/{id}', [StudentCourseController::class, 'changeCustomPaymentRate']);
         Route::get('/students-courses', [StudentCourseController::class, 'allEnrolledStudents']);
         Route::post('/enrollments', [StudentCourseController::class, 'store']);
+        Route::post('/enrollments/update', [StudentCourseController::class, 'update']);
         Route::get('/enrollments', [StudentCourseController::class, 'index']);
         Route::delete('/dropouts/{id}', [StudentCourseController::class, 'destroy']);
         Route::resource('/payments', PaymentController::class);
@@ -41,9 +43,15 @@ Route::prefix('v1')->group(function () {
         Route::get('/students/schedules/{nim}', [ScheduleController::class, 'getStudentSchedules']);
         Route::get('/course/meeting-history/{id}', [MeetingController::class, 'getMeetingHistory']);
         Route::get('/absences/meeting/{id}', [MeetingController::class, 'getAbsencesByMeetingId']);
+        Route::get('/courses-filter', [CourseController::class, 'courseFilter']);
+
+  
+        Route::get('/courses-search-by-alias', [CourseController::class, 'searchCoursesByAlias']);
+
 
         // Recapitulations
         Route::get('/recapitulations', [RecapitulationController::class, 'index']);
+        
         Route::get('/meetings/recap/{courseId}', [MeetingController::class, 'recapMeetings']);
         Route::get('/meetings/recap/{courseId}/{month}', [MeetingController::class, 'recapMeetingsByMonth']);
         Route::get('/payments/recap/{studentId}/{year}', [PaymentController::class, 'recapStudentPayments']);
@@ -53,4 +61,11 @@ Route::prefix('v1')->group(function () {
         Route::get('/student/absences/history/{id}',  [AbsenceController::class, 'getAbsenceHistory']);
         Route::post('/students/monthly-paid-unpaid',  [PaymentController::class, 'paidAndUnpaidStudentsMonthly']);
         Route::post('/course/monthly/meetings',  [MeetingController::class, 'courseMeetingsbyMonth']);
+        Route::get('/recap-teacher-absences' , [TeacherController::class, 'recapTeacherAbsences']);
+
+        Route::get('/meetings-daily-recap', [MeetingController::class, 'dailyRecap']);
+        Route::get('/payments-daily-recap', [PaymentController::class, 'dailyRecap']);
+        Route::get('/payments/{id}/receipt', [PaymentController::class, 'generateReceipt'])
+    ->name('payments.receipt');
+        // Route::get('/kontol',[TeacherController::class, 'recapTeacherAbsences']);
 });

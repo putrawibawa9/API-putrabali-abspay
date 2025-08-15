@@ -96,11 +96,12 @@ class MeetingController extends Controller
 
   public function recapMeetings($courseId)
 {
+    // dd($courseId);
     // Get the course
     $course = Course::findOrFail($courseId);
 
     // Paginate meetings
-    $meetings = Meeting::where('course_id', $courseId)->orderBy('created_at', 'desc')->paginate(20); // Change 20 to your desired items per page
+    $meetings = Meeting::where('course_id', $courseId)->orderBy('created_at', 'desc')->paginate(100); // Change 20 to your desired items per page
 
     // Transform the data
     $meetings->getCollection()->transform(function ($meeting) {
@@ -108,6 +109,7 @@ class MeetingController extends Controller
             'id' => $meeting->id,
             'day' => $meeting->day,
             'date' => $meeting->date,
+            'time' => $meeting->time,
             'teacher' => $meeting->teacher->name,
         ];
     });
@@ -141,12 +143,55 @@ class MeetingController extends Controller
 // get absence based on meeting id
     public function getAbsencesByMeetingId($meetingId)
     {
-        // return only the student name that is present in the meeting
-        $absences = Meeting::find($meetingId)->absences()->where('status', 'present')->with('studentCourse.student')->get();
+        // return only the student name in the meeting
+        $absences = Meeting::find($meetingId)->absences()->with('studentCourse.student')->get();
        
         return response()->json($absences);
             
     }
+
+   public function dailyRecap(Request $request)
+{
+    // Ambil parameter tanggal atau gunakan default
+    $startDate = $request->query('start_date', now()->format('Y-m-d'));
+    $endDate = $request->query('end_date', $startDate); // jika tidak ada end_date, pakai start_date
+
+    $teacherId = $request->query('teacher_id');
+
+    // Query dasar
+   // Query dasar + urut terbaru dulu (tanggal & jam)
+$query = Meeting::with(['course', 'teacher'])
+    ->whereBetween('date', [$startDate, $endDate])
+    ->latest(); // = orderBy('created_at','desc')
+
+
+
+    // Filter guru jika ada
+    if ($teacherId) {
+        $query->where('teacher_id', $teacherId);
+    }
+
+    // Eksekusi query
+    $meetings = $query->get();
+
+    // Transformasi data
+    $meetingsData = $meetings->map(function ($meeting) {
+        return [
+            'id' => $meeting->id,
+            'course_alias' => $meeting->course->alias,
+            'course_teacher_fee' => $meeting->course->teaching_rate,
+            'teacher_name' => $meeting->teacher->name,
+            'day' => $meeting->day,
+            'date' => $meeting->date,
+            'time' => $meeting->time,
+        ];
+    });
+
+    return response()->json($meetingsData);
+}
+
+
+
     
 
 }

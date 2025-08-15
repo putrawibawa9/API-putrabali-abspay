@@ -1,7 +1,7 @@
 <?php
 
 namespace App\Http\Controllers;
-
+use Midtrans\Snap;
 use App\Models\Payment;
 use App\Models\Student;
 use Illuminate\Http\Request;
@@ -15,6 +15,35 @@ class PaymentController extends Controller
     /**
      * Display a listing of the resource.
      */
+
+    public function generateReceipt($id)
+    {
+        // get payment with student name
+        $payment = Payment::where('id', $id)
+            ->with(['student', 'course', 'user']) // Assuming 'user' is the admin who processed the payment
+            ->first();
+        // 
+
+        if (!$payment) {
+            return response()->json(['error' => 'Payment not found'], 404);
+        }
+      
+        // Generate receipt logic here
+        $receipt = [
+            'id' => $payment->id,
+            'student_name' => $payment->student->name,
+            'type' => $payment->type,
+            'payment_month' => $payment->payment_month ?? '-',
+            'course_name' => $payment->course->alias,
+            'amount' => $payment->payment_amount,
+            'date' => $payment->payment_date,
+            'admin' => $payment->user->name ?? 'admin pb',
+        ];
+
+        return response()->json($receipt);
+    }
+
+
     public function index()
     {
         // show all students that is enrolled in a class but
@@ -39,7 +68,7 @@ class PaymentController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-public function store(Request $request)
+public function store(PaymentRequest $request)
     {
        
 
@@ -60,6 +89,7 @@ public function store(Request $request)
                 'payment_month' => $courseData['payment_month'],
                 'type' => $courseData['type'],
                 'payment_amount' => $courseData['payment_amount'],
+                'user_id' => $request->user_id, // Assuming user_id is passed in the request
             ]);
         }
 
@@ -125,6 +155,7 @@ public function store(Request $request)
 
 public function getStudentPayment($id)
 {
+ 
     // Get the student with courses and sorted payments using eager loading
     $student = Student::with([
         'activeCourses',
@@ -198,7 +229,37 @@ public function paymentRecap(Request $request)
         ]);
     }
 
-  
+  public function dailyRecap(Request $request){
+    $startDate = $request->query('start_date', now()->format('Y-m-d'));
+    $endDate = $request->query('end_date', now()->format('Y-m-d')); // jika tidak ada end_date, pakai start_date
+// dd($startDate, $endDate);
+    // Query dasar
+    $query = Payment::with(['student', 'course'])
+        ->whereBetween('payment_date', [$startDate, $endDate]);
+
+    // Eksekusi query
+    $payments = $query->latest()->get();
+// dd($payments);
+    // total payment amount
+    $totalPaymentAmount = $payments->sum('payment_amount');
+
+    // Transformasi data
+    $paymentsData = $payments->map(function ($payment) {
+        return [
+            'id' => $payment->id,
+            'student_name' => $payment->student->name,
+            'course_alias' => $payment->course->alias,
+            'payment_amount' => $payment->payment_amount,
+            'payment_date' => $payment->created_at->format('Y-m-d'),
+            'admin_name' => $payment->user->name ?? 'Unknown',
+        ];
+    });
+
+    return response()->json([
+        'total_payment' => $totalPaymentAmount,
+        'payments' => $paymentsData,
+    ]);
+  }
     
 
 }

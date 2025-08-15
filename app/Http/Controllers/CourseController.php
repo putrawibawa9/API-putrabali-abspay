@@ -2,9 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\CourseRequest;
 use App\Models\Course;
 use Illuminate\Http\Request;
+use App\Http\Requests\CourseRequest;
+use App\Http\Requests\StoreCourseRequest;
+use Illuminate\Support\Facades\Validator;
+use App\Http\Requests\UpdateCourseRequest;
 
 class CourseController extends Controller
 {
@@ -13,7 +16,7 @@ class CourseController extends Controller
      */
    public function search(Request $request)
 {
-       
+ 
     // Initialize a query builder for the Course model
     $query = Course::query();
 
@@ -49,18 +52,30 @@ class CourseController extends Controller
    public function index()
 {
     
-  $courses = Course::paginate(20);
+  $courses = Course::latest()->paginate(20);
 
   return response()->json($courses);
 }
 
 
-    public function getCourseBySubject(Request $request)
-    {
-        $subject = $request->subject;
-        $courses = Course::where('subject', $subject)->get();
-        return response()->json($courses);
-    }
+public function courseFilter(Request $request)
+{
+    $subject = $request->subject;
+
+    $courses = Course::where('subject', $subject)->get();
+
+    // Sort custom: numerik dulu, lalu huruf
+    $sorted = $courses->sortBy(function ($course) {
+        // Misal field level = "1a", "2b", dsb
+        preg_match('/^(\d+)([a-zA-Z]*)$/', $course->level, $matches);
+        $number = isset($matches[1]) ? intval($matches[1]) : 0;
+        $letter = isset($matches[2]) ? $matches[2] : '';
+        return [$number, $letter];
+    })->values(); // Reset index
+                        
+    return response()->json($sorted);
+}
+
 
   
 
@@ -75,34 +90,60 @@ class CourseController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(CourseRequest $request)
-    {
-        // Add new course to the database
-        $course = new Course();
-        $course->level = $request->level;
-        $course->section = $request->section;
-        $course->subject = $request->subject;
-        $course->alias = $request->alias;
-        $course->payment_rate = $request->payment_rate;
-        $course->save();
+    public function store(StoreCourseRequest $request)
+{
+    $course = new Course();
+    $course->level = $request->level;
+    $course->section = $request->section;
+    $course->subject = $request->subject;
+    $course->alias = $request->alias;
+    $course->payment_rate = $request->payment_rate;
 
-        return response(null, 201);
+    // Set teaching_rate otomatis berdasarkan level
+    $course->teaching_rate = $this->getTeachingRateByLevel($request->level);
+
+    $course->save();
+
+    return response(null, 201);
+}
+
+    private function getTeachingRateByLevel($level)
+{
+    if ($level >= 0 && $level <= 6) {
+        return 30000;
+    } elseif ($level >= 7 && $level <= 9) {
+        return 35000;
+    } elseif ($level > 9) {
+        return 40000;
+    } else {
+        return 0; // fallback untuk level tidak valid
     }
+}
+
 
     /**
      * Display the specified resource.
      */
     public function show(Course $course)
-    {
-            // dd($course);
-        // check if the course is available
-        if (!$course) {
-            return response(null, 404);
-        }
-        // check the course and its student if available
-        $course = Course::where('id', $course->id)->with('students')->first();
-        return response()->json($course);
+{
+    // This null check is unnecessary because Laravel's route model binding already 404s if the model isn't found.
+    // But if you really want to keep it:
+    if (!$course) {
+        return response(null, 404);
     }
+
+    // Eager load students who is still enrolled in the course
+    $course->load(['students' => function ($query) {
+        $query->where('is_active', '1'); // Assuming 'active' is the status for enrolled students
+    }]);
+
+    // Add studentCount manually
+    $data = $course->toArray();
+    $data['studentCount'] = $course->students->count();
+
+    return response()->json($data);
+}
+
 
     /**
      * Show the form for editing the specified resource.
@@ -115,13 +156,19 @@ class CourseController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(CourseRequest $request, Course $course)
-    {
-        $validated = $request->validated();
-    // update the student in the database
-    $course->update($validated);
-    return response(null, 204);
-    }
+  public function update(Request $request, Course $course)
+{
+    // Validasi input
+   
+    // Hitung teaching_rate berdasarkan level
+    $request['teaching_rate'] = $this->getTeachingRateByLevel($request['level']);
+
+    // Update course di database
+    $course->update($request->all());
+    
+    return response()->noContent(); // response(null, 204)
+}
+
 
 
 
@@ -133,6 +180,25 @@ class CourseController extends Controller
         // delete a course from the database
         $course->delete();
     }
+
+   public function searchCoursesByAlias(Request $request)
+{
+    $validator = Validator::make($request->all(), [
+        'alias' => 'required|string|max:255',
+    ]);
+
+    if ($validator->fails()) {
+        return response()->json(['error' => $validator->errors()], 422);
+    }
+
+    $alias = $request->input('alias');
+    $perPage = $request->input('per_page', 30); // bisa diatur dari frontend
+
+    $courses = Course::where('alias', 'like', '%' . $alias . '%')
+        ->paginate($perPage);
+
+    return response()->json($courses);
+}
 
 
 }

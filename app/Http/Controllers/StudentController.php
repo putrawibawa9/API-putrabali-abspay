@@ -52,6 +52,7 @@ class StudentController extends Controller
         $studentCourse = new StudentCourse();
         $studentCourse->student_id = $student->id;
         $studentCourse->course_id = $course['course_id'];
+      
         $studentCourse->custom_payment_rate = $course['custom_payment_rate'] ?? null; // Optional
         $studentCourse->save();
     }
@@ -67,7 +68,7 @@ class StudentController extends Controller
     public function show(Student $student)
     {
     //    check the course that the student enroll
-        $student = Student::where('id', $student->id)->with('activeCourses')->first();
+        $student = Student::where('id', $student->id)->with(['activeCourses','studentsCourses'] )->first();
         return response()->json($student);
     }
 
@@ -84,6 +85,8 @@ class StudentController extends Controller
      */
 public function update(StudentRequest $request, Student $student)
 {
+    // if nothing changed, return the student id
+    
     $validated = $request->validated();
     // dd($student->id);
     // update the student in the database

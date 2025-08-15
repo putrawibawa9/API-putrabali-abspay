@@ -26,10 +26,10 @@ class DatabaseSeeder extends Seeder
             TeacherSeeder::class,
             PaymentSeeder::class,
             StudentCourseSeeder::class,
-            ScheduleSeeder::class,
+            
             MeetingSeeder::class,
             UserSeeder::class,
-            // AbsenceSeeder::class,
+          
             ]
         );
     }

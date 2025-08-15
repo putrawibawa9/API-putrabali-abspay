@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Models\Teacher;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -49,4 +50,27 @@ class AuthenticationController extends Controller
         // return 201 with no message
         return response()->json([], 201);
     }
+
+   public function loginTeacher(Request $request)
+{
+    // Validate the incoming request data
+    $request->validate([
+        'username' => 'required|string',
+        'password' => 'required|string',
+    ]);
+
+    // Retrieve teacher record based on username
+    $teacher = Teacher::where('username', $request->username)->first();
+
+    if (!$teacher || !Hash::check($request->password, $teacher->password)) {
+        return response()->json(['message' => 'Invalid credentials'], 401);
+    }
+
+    return response()->json([
+        'message' => 'Login successful',
+        'teacher' => $teacher,
+    
+    ]);
+}
+
 }
