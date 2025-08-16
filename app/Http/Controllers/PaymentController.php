@@ -32,11 +32,13 @@ class PaymentController extends Controller
         $receipt = [
             'id' => $payment->id,
             'student_name' => $payment->student->name,
+            'student_nis' => $payment->student->nis ?? 'N/A',
             'type' => $payment->type,
             'payment_month' => $payment->payment_month ?? '-',
             'course_name' => $payment->course->alias,
             'amount' => $payment->payment_amount,
             'date' => $payment->payment_date,
+            'time' => $payment->created_at->format('H:i'),
             'admin' => $payment->user->name ?? 'admin pb',
         ];
 
@@ -247,6 +249,7 @@ public function paymentRecap(Request $request)
     $paymentsData = $payments->map(function ($payment) {
         return [
             'id' => $payment->id,
+        
             'student_name' => $payment->student->name,
             'course_alias' => $payment->course->alias,
             'payment_amount' => $payment->payment_amount,
