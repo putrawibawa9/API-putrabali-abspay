@@ -39,7 +39,7 @@ class PaymentController extends Controller
             'amount' => $payment->payment_amount,
             'date' => $payment->payment_date,
             'time' => $payment->created_at->format('H:i'),
-            'admin' => $payment->user->name ?? 'admin pb',
+            'admin' => $payment->user->name ?? $payment->teacher->name ?? 'Admin PB',
         ];
 
         return response()->json($receipt);
@@ -72,8 +72,7 @@ class PaymentController extends Controller
      */
 public function store(PaymentRequest $request)
     {
-       
-
+        // dd($request->all());
         $studentId = $request['student_id'];
         $courses = $request['courses'];
 
@@ -91,7 +90,8 @@ public function store(PaymentRequest $request)
                 'payment_month' => $courseData['payment_month'],
                 'type' => $courseData['type'],
                 'payment_amount' => $courseData['payment_amount'],
-                'user_id' => $request->user_id, // Assuming user_id is passed in the request
+                'user_id'    => $request->user_id ?? null,
+            'teacher_id' => $request->teacher_id ?? null,
             ]);
         }
 
@@ -254,7 +254,7 @@ public function paymentRecap(Request $request)
             'course_alias' => $payment->course->alias,
             'payment_amount' => $payment->payment_amount,
             'payment_date' => $payment->created_at->format('Y-m-d'),
-            'admin_name' => $payment->user->name ?? 'Unknown',
+            'admin_name' => $payment->user->name ?? $payment->teacher->name ?? 'Admin PB',
         ];
     });
 
