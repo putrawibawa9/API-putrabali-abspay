@@ -17,6 +17,7 @@ class Payment extends Model
         'type',
         'payment_amount',
         'user_id', // Added user_id to fillable attributes
+        'teacher_id', // Added teacher_id to fillable attributes
     ];
     // A payment belongs to a student
     public function student()
@@ -27,6 +28,11 @@ class Payment extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function teacher()
+    {
+        return $this->belongsTo(Teacher::class);
     }
 
     // A payment belongs to a course
