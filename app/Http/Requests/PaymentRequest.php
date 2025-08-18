@@ -26,7 +26,7 @@ class PaymentRequest extends FormRequest
     {
         // Base rules
         $rules = [
-            'user_id' => 'required|exists:users,id',
+        
             'student_id' => 'required|exists:students,id',
             'courses' => 'required|array',
             'courses.*.course_id' => 'required|exists:courses,id',
