@@ -20,16 +20,7 @@ class StoreCourseRequest extends FormRequest
     return [
         'level' => 'string|max:255',
         'section' => 'string|max:255',
-        'subject' => [ 
-            'string',
-            'in:English,Mapel',
-            Rule::unique('courses')->where(function ($query) {
-                return $query->where('level', $this->level)
-                             ->where('section', $this->section)
-                             ->where('subject', $this->subject);
-                           
-            }),
-        ],
+       
         'alias' => 'nullable|string|max:255|unique:courses,alias',
         'payment_rate' => 'numeric|min:0',
     ];
@@ -39,7 +30,6 @@ class StoreCourseRequest extends FormRequest
     {
         return [
     //    return error message if the combination of level, section, and subject already exists
-            'subject.unique' => 'Kelas sudah ada',
             'alias.unique' => 'Kelas sudah ada',
         ];
     }
