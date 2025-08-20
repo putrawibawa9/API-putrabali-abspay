@@ -249,7 +249,8 @@ public function paymentRecap(Request $request)
     $paymentsData = $payments->map(function ($payment) {
         return [
             'id' => $payment->id,
-        
+            'payment_month' => $payment->payment_month ?? '-',
+            'type' => $payment->type,
             'student_name' => $payment->student->name,
             'course_alias' => $payment->course->alias,
             'payment_amount' => $payment->payment_amount,
