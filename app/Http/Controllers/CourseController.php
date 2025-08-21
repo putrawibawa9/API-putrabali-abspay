@@ -52,7 +52,7 @@ class CourseController extends Controller
    public function index()
 {
     
-  $courses = Course::latest()->paginate(20);
+  $courses = Course::latest()->paginate(80);
 
   return response()->json($courses);
 }

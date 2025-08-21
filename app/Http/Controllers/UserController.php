@@ -8,6 +8,11 @@ use Illuminate\Support\Facades\Hash;
 
 class UserController extends Controller
 {
+
+    public function index(){
+        $users = User::all();
+        return response()->json($users);
+    }
     public function register(Request $request)
     {
         $data = $request->validate([

@@ -20,6 +20,7 @@ Route::prefix('v1')->group(function () {
     // Authentication
     Route::post('/teacher/login',[AuthenticationController::class,'loginTeacher'])->name('teacher.register');
     Route::post('/admin/login',[AuthenticationController::class,'login'])->name('user.login');
+    Route::get('/users', [UserController::class, 'index']);
 
     // Entity API routes
         Route::resource('/students', StudentController::class);

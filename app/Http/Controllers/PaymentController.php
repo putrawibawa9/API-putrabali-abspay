@@ -232,15 +232,31 @@ public function paymentRecap(Request $request)
     }
 
   public function dailyRecap(Request $request){
+    // dd($request->all());
     $startDate = $request->query('start_date', now()->format('Y-m-d'));
     $endDate = $request->query('end_date', now()->format('Y-m-d')); // jika tidak ada end_date, pakai start_date
-// dd($startDate, $endDate);
-    // Query dasar
-    $query = Payment::with(['student', 'course'])
-        ->whereBetween('payment_date', [$startDate, $endDate]);
 
-    // Eksekusi query
-    $payments = $query->latest()->get();
+    $query = Payment::with(['student', 'course'])
+    ->whereBetween('payment_date', [$startDate, $endDate]);
+
+// Filter opsional: payment_month
+if ($request->has('payment_month')) {
+    $query->where('payment_month', $request->input('payment_month'));
+}
+
+// Filter opsional: course_alias
+
+if ($request->has('course_id')) {
+    $query->where('course_id', $request->input('course_id'));
+}
+if ($request->has('user_id')) {
+    $query->where('user_id', $request->input('user_id'));
+}
+
+
+// Eksekusi query
+$payments = $query->latest()->get();
+
 // dd($payments);
     // total payment amount
     $totalPaymentAmount = $payments->sum('payment_amount');
