@@ -16,6 +16,7 @@ use App\Http\Controllers\RecapitulationController;
 
 Route::prefix('v1')->group(function () {
 
+    
     // Authentication
     Route::post('/teacher/login',[AuthenticationController::class,'loginTeacher'])->name('teacher.register');
     Route::post('/admin/login',[AuthenticationController::class,'login'])->name('user.login');

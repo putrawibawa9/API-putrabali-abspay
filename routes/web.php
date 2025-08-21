@@ -3,7 +3,9 @@
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
-    return view('welcome');
+//  dd(env('APP_TIMEZONE'));
+dd(config('app.timezone'));
+
 });
 
 
