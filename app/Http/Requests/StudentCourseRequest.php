@@ -47,8 +47,8 @@ class StudentCourseRequest extends FormRequest
                 ->where('is_active', true)
                 ->count();
 
-            if ($activeCoursesCount >= 2) {
-                $validator->errors()->add('student_id', 'A student cannot be enrolled in more than 2 active courses.');
+            if ($activeCoursesCount >= 4) {
+                $validator->errors()->add('student_id', 'A student cannot be enrolled in more than 4 active courses.');
             }
         });
     }
