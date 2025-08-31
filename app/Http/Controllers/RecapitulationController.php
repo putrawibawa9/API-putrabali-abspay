@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Carbon\Carbon;
 use App\Models\Course;
 use App\Models\Meeting;
 use App\Models\Payment;
@@ -99,4 +100,53 @@ $formatted = 'Rp ' . number_format($expectedIncome, 0, ',', '.');
     ]);
 }
 
+public function unpaid(Request $request)
+    {
+        $raw = $request->query('month', now()->format('Y-m'));
+
+        // Normalisasi month
+        $monthName = preg_match('/^\d{4}-\d{2}$/', $raw)
+            ? strtolower(Carbon::createFromFormat('Y-m', $raw)->format('F'))
+            : strtolower($raw);
+
+        $courseId = $request->query('course_id');
+        $TYPE = 'spp';
+
+        $rows = DB::table('students_courses as sc')
+            ->join('students as s', 's.id', '=', 'sc.student_id')
+            ->join('courses as c', 'c.id', '=', 'sc.course_id')
+            ->when($courseId, fn($q) => $q->where('sc.course_id', $courseId))
+            ->where('sc.is_active', 1)
+            ->whereNotExists(function ($q) use ($monthName, $TYPE) {
+                $q->select(DB::raw(1))
+                  ->from('payments as p')
+                  ->whereColumn('p.student_id', 'sc.student_id')
+                  ->whereColumn('p.course_id', 'sc.course_id')
+                  ->where('p.type', $TYPE)
+                  ->whereRaw('LOWER(p.payment_month) = ?', [$monthName]);
+            })
+            ->select([
+                's.id as id',
+                's.nis as nis',
+                's.name as name',
+                's.enroll_date',
+                's.wa_number',
+                'c.id as course_id',
+                'c.alias as course_alias',
+                'c.alias as course_alias',
+                DB::raw('COALESCE(sc.custom_payment_rate, c.payment_rate) as expected_amount'),
+            ])
+            ->orderBy('c.alias')->orderBy('s.name')
+            ->get();
+
+        // return sebagai API response
+        return response()->json([
+            'month' => $monthName,
+            'course_id' => $courseId,
+            'course_alias' => $rows->pluck('course_alias')->first(),
+            'count' => $rows->count(),
+            'total_money' => $rows->sum('expected_amount'),
+            'unpaid_students' => $rows,
+        ]);
+    }
 }
