@@ -179,8 +179,10 @@ $query = Meeting::with(['course', 'teacher'])
         return [
             'id' => $meeting->id,
             'course_alias' => $meeting->course->alias,
+            'course_id' => $meeting->course->id,
             'course_teacher_fee' => $meeting->course->teaching_rate,
             'teacher_name' => $meeting->teacher->name,
+            'teacher_id' => $meeting->teacher->id,
             'day' => $meeting->day,
             'date' => $meeting->date,
             'time' => $meeting->time,
