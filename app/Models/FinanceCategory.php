@@ -5,7 +5,12 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class ExpanseCategory extends Model
+class FinanceCategory extends Model
 {
     use HasFactory;
+
+    public function financeEntries()
+    {
+        return $this->hasMany(FinanceEntry::class);
+    }
 }

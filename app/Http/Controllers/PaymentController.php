@@ -4,10 +4,12 @@ namespace App\Http\Controllers;
 use Midtrans\Snap;
 use App\Models\Payment;
 use App\Models\Student;
+use App\Models\FinanceEntry;
 use Illuminate\Http\Request;
 use App\Models\StudentCourse;
-use Illuminate\Support\Facades\DB;
 
+use App\Models\FinanceCategory;
+use Illuminate\Support\Facades\DB;
 use App\Http\Requests\PaymentRequest;
 
 class PaymentController extends Controller
@@ -76,6 +78,7 @@ public function store(PaymentRequest $request)
         $studentId = $request['student_id'];
         $courses = $request['courses'];
 
+
         foreach ($courses as $courseData) {
             // Check the type and set payment_amount to 50000 if type is modul, pendaftaran, or ujian
             if (in_array($courseData['type'], ['modul', 'pendaftaran', 'ujian'])) {
@@ -92,6 +95,23 @@ public function store(PaymentRequest $request)
                 'payment_amount' => $courseData['payment_amount'],
                 'user_id'    => $request->user_id ?? null,
             'teacher_id' => $request->teacher_id ?? null,
+            ]);
+// pisahkan berdasarkan jenis pembayaran
+            if ($courseData['type'] === 'spp') {
+                $category = FinanceCategory::where('code', 'P001')->first(); // Assuming 'P001' is the code for course fees
+                $note = 'Pembayaran SPP untuk bulan ' . ($courseData['payment_month'] ?? '-') . ' - Kursus ID: ' . $courseData['course_id'];
+            } elseif ($courseData['type'] === 'modul') {
+                $category = FinanceCategory::where('code', 'P002')->first(); // Assuming 'P002' is the code for other fees
+                $note = 'Pembayaran Modul - Kursus ID: ' . $courseData['course_id'];
+            } else {
+               $category = FinanceCategory::where('code', 'P003')->first(); // Assuming 'P003' is the code for other fees
+               $note = "Pembayaran Ujian / Pendaftaran - Kursus ID: " . $courseData['course_id'];
+            }
+            FinanceEntry::create([
+                'finance_category_id' => $category->id,
+                'direction' => 'income',
+                'amount' => $courseData['payment_amount'],
+                'note' => $note,
             ]);
         }
 

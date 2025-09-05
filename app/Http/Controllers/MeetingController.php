@@ -5,8 +5,10 @@ namespace App\Http\Controllers;
 use App\Models\Course;
 use App\Models\Meeting;
 use Illuminate\Http\Request;
+use App\Models\FinanceCategory;
 use App\Http\Requests\MeetingRequest;
 use App\Http\Resources\MeetingResource;
+use App\Models\FinanceEntry;
 
 class MeetingController extends Controller
 {
@@ -32,6 +34,7 @@ class MeetingController extends Controller
      */
     public function store(MeetingRequest $request)
     {
+        dd($request->all());
         // Create the new meeting record
         Meeting::create([
             'course_id' => $request['course_id'],
@@ -40,6 +43,20 @@ class MeetingController extends Controller
             'time' => $request['time'],
             'teacher_id' => $request['teacher_id'],
         ]);
+
+            // 2. Cari kategori "Biaya honor PTK"
+    $category = FinanceCategory::where('code', 'K001')->first();
+    $courseTeachingRate = Course::find($request['course_id'])->teaching_rate ?? 0;
+
+    FinanceEntry::create([
+        'finance_category_id' => $category->id,
+        'direction' => 'expense',
+        'amount' => $courseTeachingRate,
+        'note' => 'Honor mengajar untuk pertemuan pada ' . $request['date'] . ' (' . ($request['day'] ?? '-') . '), ' . ($request['time'] ?? '-') . ' - Kursus ID: ' . $request['course_id'],
+  
+        // 'sourceable_id' akan diisi setelah meeting dibuat
+    ]);
+
         return response(null, 201);
     }
 

@@ -6,7 +6,9 @@ use App\Models\Course;
 use App\Models\Absence;
 use App\Models\Meeting;
 use App\Models\Student;
+use App\Models\FinanceEntry;
 use Illuminate\Http\Request;
+use App\Models\FinanceCategory;
 use Illuminate\Support\Facades\Log;
 use App\Http\Requests\AbsenceRequest;
 use App\Http\Resources\MeetingResource;
@@ -53,6 +55,20 @@ public function store(AbsenceRequest $request)
             'status' => $attendance['status'],
         ]);
     }
+
+
+    $category = FinanceCategory::where('code', 'K001')->first();
+    // dd($category);
+    $courseTeachingRate = Course::find($request['course_id'])->teaching_rate ?? 0;
+
+    FinanceEntry::create([
+        'finance_category_id' => $category->id,
+        'direction' => 'expense',
+        'amount' => $courseTeachingRate,
+        'note' => 'Honor mengajar untuk pertemuan pada ' . $request['date'] . ' (' . ($request['day'] ?? '-') . '), ' . ($request['time'] ?? '-') . ' - Kursus ID: ' . $request['course_id'],
+  
+        // 'sourceable_id' akan diisi setelah meeting dibuat
+    ]);
 
    return response(null, 201);
 }

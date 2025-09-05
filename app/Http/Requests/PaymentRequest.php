@@ -30,7 +30,7 @@ class PaymentRequest extends FormRequest
             'student_id' => 'required|exists:students,id',
             'courses' => 'required|array',
             'courses.*.course_id' => 'required|exists:courses,id',
-            'courses.*.payment_date' => 'required|date|after_or_equal:today',
+            'courses.*.payment_date' => 'required|date',
             'courses.*.type' => 'required|string',
             'courses.*.payment_month' => 'sometimes|string',
         ];
