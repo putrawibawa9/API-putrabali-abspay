@@ -13,23 +13,48 @@ class FinanceEntryController extends Controller
     public function index(Request $request)
 {
     $categoryId = $request->query('category_id');
+    $startDate = $request->query('start_date');
+    $endDate = $request->query('end_date');
 
-    $query = FinanceCategory::with('financeEntries');
+    $query = FinanceCategory::with(['financeEntries' => function ($q) use ($startDate, $endDate) {
+        if ($startDate) {
+            $q->whereDate('created_at', '>=', $startDate);
+        }
+        if ($endDate) {
+            $q->whereDate('created_at', '<=', $endDate);
+        }
+    }]);
 
     if ($categoryId) {
         $query->where('id', $categoryId);
     }
 
-    $financeCategory = $query->get();
+    $financeCategories = $query->get();
 
-    $financeCategory = $financeCategory->map(function ($category) {
+    $incomeCategories = $financeCategories->filter(function ($category) {
+        return $category->type === 'income';
+    })->map(function ($category) {
         $total = $category->financeEntries->sum('amount');
         return [
             'category' => $category->name,
             'total_amount' => $total,
         ];
-    });
-    return response()->json($financeCategory);
+    })->values();
+
+    $outcomeCategories = $financeCategories->filter(function ($category) {
+        return $category->type === 'expense';
+    })->map(function ($category) {
+        $total = $category->financeEntries->sum('amount');
+        return [
+            'category' => $category->name,
+            'total_amount' => $total,
+        ];
+    })->values();
+
+    return response()->json([
+        'income_category' => $incomeCategories,
+        'outcome_category' => $outcomeCategories,
+    ]);
 }
 
 
