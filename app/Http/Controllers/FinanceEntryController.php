@@ -37,6 +37,7 @@ class FinanceEntryController extends Controller
         $total = $category->financeEntries->sum('amount');
         return [
             'category' => $category->name,
+            'code' => $category->code,
             'total_amount' => $total,
         ];
     })->values();
@@ -46,14 +47,20 @@ class FinanceEntryController extends Controller
     })->map(function ($category) {
         $total = $category->financeEntries->sum('amount');
         return [
+            'code' => $category->code,
             'category' => $category->name,
             'total_amount' => $total,
         ];
     })->values();
 
+    $income_data = FinanceCategory::where('type', 'income')->get();
+    $outcome_data = FinanceCategory::where('type', 'expense')->get();
+
     return response()->json([
         'income_category' => $incomeCategories,
         'outcome_category' => $outcomeCategories,
+        'income_data' => $income_data,
+        'outcome_data' => $outcome_data,
     ]);
 }
 
@@ -72,7 +79,38 @@ class FinanceEntryController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $validated = $request->validate([
+            'id' => 'sometimes|integer',
+            'finance_category_id' => 'required|exists:finance_categories,id',
+            'direction' => 'required|string',
+            'amount' => 'required|numeric',
+            'note' => 'nullable|string',
+            'created_at' => 'nullable|date',
+            'updated_at' => 'nullable|date',
+        ]);
+
+        $financeEntryData = [
+            'finance_category_id' => $validated['finance_category_id'],
+            'direction' => $validated['direction'],
+            'amount' => $validated['amount'],
+            'note' => $validated['note'] ?? null,
+        ];
+        if (isset($validated['id'])) {
+            $financeEntryData['id'] = $validated['id'];
+        }
+        if (isset($validated['created_at'])) {
+            $financeEntryData['created_at'] = $validated['created_at'];
+        }
+        if (isset($validated['updated_at'])) {
+            $financeEntryData['updated_at'] = $validated['updated_at'];
+        }
+
+        $financeEntry = \App\Models\FinanceEntry::create($financeEntryData);
+
+        return response()->json([
+            'message' => 'Finance entry created successfully',
+            'data' => $financeEntry
+        ], 201);
     }
 
     /**
