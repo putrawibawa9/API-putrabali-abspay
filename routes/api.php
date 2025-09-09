@@ -76,4 +76,5 @@ Route::prefix('v1')->group(function () {
         Route::get('/unpaid', [RecapitulationController::class, 'unpaid'])->name('reports.unpaid');
 
         Route::resource('/finance-entries', FinanceEntryController::class);
+        Route::get('/finance-entries-categories', [FinanceEntryController::class, 'allCategoriesWithEntries']);
 });

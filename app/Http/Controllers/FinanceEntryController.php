@@ -10,6 +10,26 @@ class FinanceEntryController extends Controller
     /**
      * Display a listing of the resource.
      */
+
+    public function allCategoriesWithEntries(Request $request){
+        $id = $request->query('id');
+        $except = 'K001';
+        if ($id) {
+            $categories = FinanceCategory::with('financeEntries')
+                ->where('id', $id)
+                ->where('code', '!=', $except)
+                ->where('type', 'expense')
+                ->first();
+            return response()->json($categories);
+        } else {
+            $categories = FinanceCategory::with('financeEntries')
+            ->where('type', 'expense')
+            ->where('code', '!=', $except)
+            ->get();
+            return response()->json($categories);
+        }
+    }
+    
     public function index(Request $request)
 {
     $categoryId = $request->query('category_id');
