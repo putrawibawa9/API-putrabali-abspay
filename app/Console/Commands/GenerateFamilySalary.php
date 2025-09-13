@@ -42,7 +42,7 @@ class GenerateFamilySalary extends Command
             // 2. Jika salary baru dibuat, masukkan juga ke finance_entries
             if ($salary->wasRecentlyCreated) {
                 FinanceEntry::create([
-                    'finance_category_id' => 1, // misal kategori Salary ID = 1
+                    'finance_category_id' => 17, // misal kategori Salary ID = 1
                     'direction' => 'expense',
                     'amount' => $member->daily_salary,
                     'note' => "Gaji harian untuk {$member->name} ({$today})",
