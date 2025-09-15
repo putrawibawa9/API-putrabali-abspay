@@ -156,7 +156,7 @@ public function store(PaymentRequest $request)
      */
     public function destroy(Payment $payment)
     {
-        //
+        dd($payment);
     }
 
     public function recapStudentPayments($studentId, $year)
