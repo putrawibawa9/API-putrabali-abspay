@@ -156,7 +156,9 @@ public function store(PaymentRequest $request)
      */
     public function destroy(Payment $payment)
     {
-        dd($payment);
+        $payment->delete();
+
+        return response()->json(['message' => 'Payment deleted successfully']);
     }
 
     public function recapStudentPayments($studentId, $year)
