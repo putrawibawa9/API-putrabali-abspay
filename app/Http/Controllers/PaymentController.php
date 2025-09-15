@@ -148,7 +148,18 @@ public function store(PaymentRequest $request)
      */
     public function update(Request $request, Payment $payment)
     {
-        //
+        $request->validate([
+            'payment_month' => 'in:january,february,march,april,may,june,july,august,september,october,november,december',
+        ]);
+
+        $payment->update($request->all());
+
+        // return eror response if payment_month is not valid
+        if ($request->has('payment_month') && !in_array($request->payment_month, ['january','february','march','april','may','june','july','august','september','october','november','december'])) {
+            return response()->json(['error' => 'Invalid payment_month value'], 400);
+        }
+    
+        return response()->json(['message' => 'Payment updated successfully', 'payment' => $payment]);
     }
 
     /**
