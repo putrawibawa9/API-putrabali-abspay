@@ -33,6 +33,8 @@ class PaymentRequest extends FormRequest
             'courses.*.payment_date' => 'required|date',
             'courses.*.type' => 'required|string',
             'courses.*.payment_month' => 'sometimes|string',
+            'courses.*.payment_amount' => 'sometimes|string',
+
         ];
 
         // Add custom uniqueness rule for each course
