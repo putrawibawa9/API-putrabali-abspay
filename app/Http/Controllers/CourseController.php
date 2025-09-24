@@ -51,10 +51,18 @@ class CourseController extends Controller
 
    public function index()
 {
-    
-  $courses = Course::latest()->paginate(80);
+    // Ambil courses beserta jumlah siswa aktif di masing-masing kelas
+    $courses = Course::withCount(['students' => function ($query) {
+        $query->where('is_active', '1');
+    }])->latest()->paginate(80);
 
-  return response()->json($courses);
+    // // Tambahkan studentCount ke setiap item
+    // $courses->getCollection()->transform(function ($course) {
+    //     $course->studentCount = $course->students_count;
+    //     return $course;
+    // });
+
+    return response()->json($courses);
 }
 
 
