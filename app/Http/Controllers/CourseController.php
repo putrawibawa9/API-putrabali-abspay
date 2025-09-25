@@ -18,7 +18,9 @@ class CourseController extends Controller
 {
  
     // Initialize a query builder for the Course model
-    $query = Course::query();
+    $query = Course::withCount(['students' => function ($q) {
+        $q->where('is_active', '1');
+    }]);
 
     // Add conditions based on the request input, only if the value is not null
     if ($request->filled('level')) {
@@ -36,13 +38,18 @@ class CourseController extends Controller
     // Retrieve the filtered results
     $courses = $query->paginate(10)
         ->appends($request->query());
-    
+
     // Return 404 and a message if no results are found
     if ($courses->isEmpty()) {
         return response()->json(['message' => 'No courses found'], 404);
     }
-   
-    
+
+    // Tambahkan studentCount ke setiap item
+    $courses->getCollection()->transform(function ($course) {
+        $course->studentCount = $course->students_count;
+        return $course;
+    });
+
     // Return the results as a JSON response
     return response()->json($courses);
 }
@@ -70,17 +77,24 @@ public function courseFilter(Request $request)
 {
     $subject = $request->subject;
 
-    $courses = Course::where('subject', $subject)->get();
+    $courses = Course::withCount(['students' => function ($query) {
+        $query->where('is_active', '1');
+    }])->where('subject', $subject)->get();
 
     // Sort custom: numerik dulu, lalu huruf
     $sorted = $courses->sortBy(function ($course) {
-        // Misal field level = "1a", "2b", dsb
         preg_match('/^(\d+)([a-zA-Z]*)$/', $course->level, $matches);
         $number = isset($matches[1]) ? intval($matches[1]) : 0;
         $letter = isset($matches[2]) ? $matches[2] : '';
         return [$number, $letter];
-    })->values(); // Reset index
-                        
+    })->values();
+
+    // Tambahkan studentCount ke setiap item
+    $sorted->transform(function ($course) {
+        $course->studentCount = $course->students_count;
+        return $course;
+    });
+
     return response()->json($sorted);
 }
 
