@@ -202,8 +202,17 @@ public function courseFilter(Request $request)
     $alias = $request->input('alias');
     $perPage = $request->input('per_page', 30); // bisa diatur dari frontend
 
-    $courses = Course::where('alias', 'like', '%' . $alias . '%')
-        ->paginate($perPage);
+    $courses = Course::withCount(['students' => function ($query) {
+        $query->where('is_active', '1');
+    }])
+    ->where('alias', 'like', '%' . $alias . '%')
+    ->paginate($perPage);
+
+    // Tambahkan studentCount ke setiap item
+    $courses->getCollection()->transform(function ($course) {
+        $course->studentCount = $course->students_count;
+        return $course;
+    });
 
     return response()->json($courses);
 }
