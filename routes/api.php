@@ -2,6 +2,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\GradeController;
 use App\Http\Controllers\CourseController;
 use App\Http\Controllers\AbsenceController;
 use App\Http\Controllers\MeetingController;
@@ -9,6 +10,7 @@ use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\StudentController;
 use App\Http\Controllers\TeacherController;
 use App\Http\Controllers\ScheduleController;
+use App\Http\Controllers\AssessmentController;
 use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\FinanceEntryController;
 use App\Http\Controllers\StudentCourseController;
@@ -67,7 +69,7 @@ Route::prefix('v1')->group(function () {
         Route::get('/recap-teacher-absences' , [TeacherController::class, 'recapTeacherAbsences']);
 
         Route::get('/meetings-daily-recap', [MeetingController::class, 'dailyRecap']);
-        Route::get('/payments-daily-recap', [PaymentController::class, 'dailyRecap']);
+        Route::post('/payments-daily-recap', [PaymentController::class, 'dailyRecap']);
         Route::get('/payments/{id}/receipt', [PaymentController::class, 'generateReceipt'])
     ->name('payments.receipt');
         // Route::get('/kontol',[TeacherController::class, 'recapTeacherAbsences']);
@@ -77,4 +79,27 @@ Route::prefix('v1')->group(function () {
 
         Route::resource('/finance-entries', FinanceEntryController::class);
         Route::get('/finance-entries-categories', [FinanceEntryController::class, 'allCategoriesWithEntries']);
+
+
+
+
+        // Grades and Assessments
+     
+
+
+Route::prefix('assessments')->group(function () {
+    Route::post('/', [AssessmentController::class, 'store']);           // create assessment
+    Route::delete('{id}', [AssessmentController::class, 'destroy']);    // delete assessment
+});
+
+Route::get('courses/{course}/assessments', [AssessmentController::class, 'indexByCourse']);
+
+Route::prefix('grades')->group(function () {
+    Route::post('bulk', [GradeController::class, 'bulkStore']);          // bulk upsert grades
+});
+
+Route::get('students/{student}/grades', [GradeController::class, 'indexByStudent']);
+Route::get('courses/{course}/grades', [GradeController::class, 'indexByCourse']);
+Route::get('students/{student}/final-scores', [GradeController::class, 'finalScoresByStudent']);
+
 });

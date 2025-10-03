@@ -1,13 +1,14 @@
 <?php
 
 namespace App\Http\Controllers;
+use Carbon\Carbon;
 use Midtrans\Snap;
 use App\Models\Payment;
 use App\Models\Student;
 use App\Models\FinanceEntry;
 use Illuminate\Http\Request;
-use App\Models\StudentCourse;
 
+use App\Models\StudentCourse;
 use App\Models\FinanceCategory;
 use Illuminate\Support\Facades\DB;
 use App\Http\Requests\PaymentRequest;
@@ -264,57 +265,83 @@ public function paymentRecap(Request $request)
         ]);
     }
 
-  public function dailyRecap(Request $request){
-    // dd($request->all());
-    $startDate = $request->query('start_date', now()->format('Y-m-d'));
-    $endDate = $request->query('end_date', now()->format('Y-m-d')); // jika tidak ada end_date, pakai start_date
+ public function dailyRecap(Request $request)
+{
+    // VALIDASI SEDERHANA (opsional tapi disarankan)
+    $request->validate([
+        'start_date'    => 'sometimes|date',
+        'end_date'      => 'sometimes|date',
+        'payment_month' => 'sometimes|string|nullable',
+        'course_id'     => 'sometimes|array',
+        'course_id.*'   => 'integer',
+        'user_id'       => 'sometimes|integer|nullable',
+    ]);
 
-    $query = Payment::with(['student', 'course'])
-    ->whereBetween('payment_date', [$startDate, $endDate]);
+    // Ambil dari body (POST JSON / form), bukan query()
+    $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->toDateString());
+    // Kalau end_date kosong, pakai startDate (sesuai komentar aslimu)
+    $endDate   = $request->input('end_date', $startDate);
 
-// Filter opsional: payment_month
-if ($request->has('payment_month')) {
-    $query->where('payment_month', $request->input('payment_month'));
-}
+    // Normalisasi course_id -> array bersih
+    $courseIds = collect($request->input('course_id', []))
+        ->filter(fn($v) => $v !== null && $v !== '' )
+        ->map(fn($v) => (int) $v)
+        ->values()
+        ->all();
 
-// Filter opsional: course_alias
+    // Eager load relasi yang dipakai di map (hindari N+1)
+    $query = Payment::with(['student', 'course', 'user', 'teacher'])
+        ->whereBetween('payment_date', [$startDate, $endDate]);
 
-if ($request->has('course_id')) {
-    $query->where('course_id', $request->input('course_id'));
-}
-if ($request->has('user_id')) {
-    $query->where('user_id', $request->input('user_id'));
-}
+    // payment_month (pakai filled biar '' nggak ikut ngefilter)
+    if ($request->filled('payment_month')) {
+        $query->where('payment_month', $request->input('payment_month'));
+    }
 
+    // course_id (skip kalau kosong)
+    if (!empty($courseIds)) {
+        $query->whereIn('course_id', $courseIds);
+    }
 
-// Eksekusi query
-$payments = $query->latest()->get();
+    // user_id
+    if ($request->filled('user_id')) {
+        $query->where('user_id', (int) $request->input('user_id'));
+    }
 
-// dd($payments);
-    // total payment amount
+    // Urutkan berdasarkan payment_date (kamu filter pakai payment_date, jangan latest() default created_at)
+    $payments = $query->orderByDesc('payment_date')->get();
+
     $totalPaymentAmount = $payments->sum('payment_amount');
 
-    // Transformasi data
+    // Konsisten: kirimkan payment_date dari kolom payment_date (bukan created_at)
     $paymentsData = $payments->map(function ($payment) {
         return [
-            'id' => $payment->id,
-            'payment_month' => $payment->payment_month ?? '-',
-            'type' => $payment->type,
-            'student_name' => $payment->student->name,
-            'student_id' => $payment->student->id,
-            'course_alias' => $payment->course->alias,
-            'course_id' => $payment->course->id,
+            'id'             => $payment->id,
+            'payment_month'  => $payment->payment_month ?? '-',
+            'type'           => $payment->type,
+            'student_name'   => optional($payment->student)->name,
+            'student_id'     => optional($payment->student)->id,
+            'course_alias'   => optional($payment->course)->alias,
+            'course_id'      => optional($payment->course)->id,
             'payment_amount' => $payment->payment_amount,
-            'payment_date' => $payment->created_at->format('Y-m-d'),
-            'admin_name' => $payment->user->name ?? $payment->teacher->name ?? 'Admin PB',
+            'payment_date'   => optional($payment->payment_date)->format('Y-m-d') ?? $payment->payment_date, // jika kolom date sudah string
+            'admin_name'     => optional($payment->user)->name
+                                ?? optional($payment->teacher)->name
+                                ?? 'Admin PB',
         ];
     });
 
     return response()->json([
         'total_payment' => $totalPaymentAmount,
-        'payments' => $paymentsData,
+        'payments'      => $paymentsData,
+        'range'         => ['start_date' => $startDate, 'end_date' => $endDate],
+        'filters'       => [
+            'payment_month' => $request->input('payment_month'),
+            'course_id'     => $courseIds,
+            'user_id'       => $request->input('user_id'),
+        ],
     ]);
-  }
+}
     
 
 }

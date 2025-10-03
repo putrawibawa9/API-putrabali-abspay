@@ -24,7 +24,10 @@ class DatabaseSeeder extends Seeder
          
              ExpanseCategorySeeder::class,
                 FamilyMemberSeeder::class,
-          
+            UserSeeder::class,
+            StudentSeeder::class,
+            CourseSeeder::class,
+            StudentCourseSeeder::class,
             ]
         );
     }
