@@ -87,10 +87,8 @@ Route::prefix('v1')->group(function () {
      
 
 
-Route::prefix('assessments')->group(function () {
-    Route::post('/', [AssessmentController::class, 'store']);           // create assessment
-    Route::delete('{id}', [AssessmentController::class, 'destroy']);    // delete assessment
-});
+
+Route::resource('/assessments', AssessmentController::class);
 
 Route::get('courses/{course}/assessments', [AssessmentController::class, 'indexByCourse']);
 

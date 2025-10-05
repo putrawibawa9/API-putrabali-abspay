@@ -33,32 +33,57 @@ class AssessmentController extends Controller
      * Store a newly created resource in storage.
      */
    public function store(Request $request)
-    {
-        // dd($request->all());
-        $data = $request->validate([
-            'course_id'  => ['required', 'exists:courses,id'],
-            'name'       => ['required', 'string', 'max:100'],
-            'type'       => ['required', Rule::in(['UTS','UAS','QUIZ','TASK','PROJECT','OTHER'])],
-            'weight'     => ['nullable', 'numeric', 'min:0', 'max:100'],
-            'max_score'  => ['nullable', 'numeric', 'min:1', 'max:1000'],
-            'date'       => ['nullable', 'date'],
-            // 'meeting_id' => ['nullable', 'exists:meetings,id'],
-            // 'teacher_id' => ['nullable', 'exists:users,id'],
-        ]);
+{
+    // dd($request->all());
+    // Validasi input
+    $validated = $request->validate([
+        'student_id' => 'required|exists:students,id',
+        'subject'    => 'required|string|max:100',
+        'type'       => 'required|string|max:50',
+        'score'      => 'required|integer|min:0|max:10',
+        'remarks'    => 'nullable|string',
+    ]);
 
-        $data['max_score'] = $data['max_score'] ?? 100;
+    // Simpan ke database
+    $assessment = \App\Models\Assessment::create([
+        'student_id' => $validated['student_id'],
+        'subject'    => $validated['subject'],
+        'type'       => $validated['type'] ?? 'OTHER',
+        'score'      => $validated['score'],
+        'remarks'    => $validated['remarks'] ?? null,
+    ]);
 
-        $assessment = Assessment::create($data);
-
-        return response()->json($assessment, 201);
+    // return error if validation fails
+    if (!$assessment) {
+        return response()->json(['message' => 'Assessment gagal ditambahkan'], 500);
     }
+
+    return response()->json([
+        'message' => 'Assessment berhasil ditambahkan',
+        'data'    => $assessment
+    ], 201);
+}
+
+
 
     /**
      * Display the specified resource.
      */
     public function show(string $id)
     {
-        //
+        // Ambil data student
+        $student = \App\Models\Student::find($id);
+        if (!$student) {
+            return response()->json(['message' => 'Student tidak ditemukan'], 404);
+        }
+
+        // Ambil semua assessment milik student
+        $assessments = Assessment::where('student_id', $id)->orderBy('created_at', 'desc')->get();
+
+        $studentData = $student->toArray();
+        $studentData['assessments'] = $assessments;
+
+        return response()->json($studentData);
     }
 
     /**

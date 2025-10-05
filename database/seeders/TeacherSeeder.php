@@ -156,9 +156,9 @@ Teacher::create([
 ]);
 
 Teacher::create([
-    'name' => 'Rina Sari',
-    'username' => 'username21',
-    'password' => bcrypt('password'),
+    'name' => 'Putra',
+    'username' => '2217',
+    'password' => bcrypt('12345678'),
     'alias' => 'rs',
 ]);
 

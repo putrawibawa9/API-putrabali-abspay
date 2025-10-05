@@ -8,14 +8,14 @@ return new class extends Migration {
     public function up(): void {
         Schema::create('assessments', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('course_id')->constrained()->cascadeOnDelete();
-            $table->string('name', 100); // "UTS", "UAS", "Quiz 1", dst.
-            $table->enum('type', ['UTS','UAS','QUIZ','TASK','PROJECT','OTHER'])->default('OTHER');
-            $table->date('date')->nullable();
-            $table->foreignId('teacher_id')->nullable()->constrained('teachers')->nullOnDelete(); // opsional
+            $table->foreignId('student_id')->constrained('students')->onDelete('cascade');
+            $table->string('subject', 100); // "UTS", "UAS", "Quiz 1", dst.
+            $table->string('type', 50); // "UTS", "UAS", "QUIZ", "TASK", "PROJECT", "OTHER"
+            $table->integer('score');
+            $table->text('remarks')->nullable();
             $table->timestamps();
 
-            $table->index(['course_id','type']);
+  
         });
     }
 
