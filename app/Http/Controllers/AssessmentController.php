@@ -40,7 +40,7 @@ class AssessmentController extends Controller
         'student_id' => 'required|exists:students,id',
         'subject'    => 'required|string|max:100',
         'type'       => 'required|string|max:50',
-        'score'      => 'required|integer|min:0|max:10',
+        'score'      => 'required|integer|min:10|max:100',
         'remarks'    => 'nullable|string',
     ]);
 
