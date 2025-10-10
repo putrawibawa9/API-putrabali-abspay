@@ -1,63 +1,97 @@
 <?php
 
 namespace App\Http\Requests;
-
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
-use App\Models\Payment; // Import the Payment model
+use Illuminate\Support\Arr;
 
 class PaymentRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
     public function authorize(): bool
     {
-        // Return true if the user is authorized to make this request
         return true;
     }
 
     /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array|string>
+     * Buang item kursus yang tidak dibayar (payment_amount null/0/“”)
+     * sebelum rules dieksekusi. Tidak ubah nama field sama sekali.
      */
+   protected function prepareForValidation(): void
+{
+    $courses = collect($this->input('courses', []))
+        ->map(function ($c) {
+            // normalisasi
+            $c['type']           = $c['type']           ?? '';
+            $c['payment_date']   = $c['payment_date']   ?? null;
+            $c['payment_month']  = ($c['payment_month'] ?? '') === '' ? null : $c['payment_month'];
+            $c['payment_amount'] = isset($c['payment_amount']) && $c['payment_amount'] !== ''
+                ? (int) $c['payment_amount'] : null;
+
+            // month wajib hanya utk SPP; utk non-SPP set null
+            if (in_array($c['type'], ['modul','pendaftaran','ujian'], true)) {
+                $c['payment_month'] = null;
+            }
+
+            return $c;
+        })
+        ->filter(function ($c) {
+            // Buang baris yang benar2 kosong/invalid
+            if (empty($c['type']) || empty($c['course_id']) || empty($c['payment_date'])) {
+                return false;
+            }
+            // SPP: harus ada nominal > 0
+            if ($c['type'] === 'spp') {
+                return ($c['payment_amount'] ?? 0) > 0;
+            }
+            // Non-SPP: boleh tanpa nominal (server set 50k)
+            return in_array($c['type'], ['modul','pendaftaran','ujian'], true);
+        })
+        ->values()
+        ->all();
+
+    $this->merge(['courses' => $courses]);
+}
+
+
     public function rules(): array
-    {
-        // Base rules
-        $rules = [
-        
-            'student_id' => 'required|exists:students,id',
-            'courses' => 'required|array',
-            'courses.*.course_id' => 'required|exists:courses,id',
-            'courses.*.payment_date' => 'required|date',
-            'courses.*.type' => 'required|string',
-            'courses.*.payment_month' => 'sometimes|string',
-            'courses.*.payment_amount' => 'sometimes|string',
+{
+    $rules = [
+        'student_id' => 'required|exists:students,id',
+        'courses'    => 'required|array|min:1',
 
-        ];
+        'courses.*.course_id'     => 'required|exists:courses,id',
+        'courses.*.payment_date'  => 'required|date',
+        'courses.*.type'          => 'required|string|in:spp,modul,pendaftaran,ujian',
+        'courses.*.payment_month' => 'nullable|string',
+        'courses.*.payment_amount'=> 'nullable|integer|min:1',
+    ];
 
-        // Add custom uniqueness rule for each course
-        foreach ($this->input('courses', []) as $index => $course) {
-            $rules["courses.$index.course_id"][] = Rule::unique('payments')->where(function ($query) use ($course) {
-                return $query->where('student_id', $this->input('student_id'))
-                             ->where('course_id', $course['course_id'])
-                             ->where('type', $course['type'])
-                             ->where('payment_month', $course['payment_month'] ?? "Select Month")
-                             ->whereYear('payment_date', date('Y', strtotime($course['payment_date'])));
-            });
+    foreach ($this->input('courses', []) as $i => $c) {
+        // Wajibkan payment_amount & month untuk SPP
+        if (($c['type'] ?? null) === 'spp') {
+            $rules["courses.$i.payment_amount"][] = \Illuminate\Validation\Rule::requiredIf(true);
+            $rules["courses.$i.payment_month"][]  = \Illuminate\Validation\Rule::requiredIf(true);
         }
 
-        return $rules;
+        // Unique per student+course+type+payment_month+year(payment_date)
+        $rules["courses.$i.course_id"][] = \Illuminate\Validation\Rule::unique('payments')
+            ->where(function ($q) use ($c) {
+                return $q->where('student_id', $this->input('student_id'))
+                         ->where('course_id', $c['course_id'])
+                         ->where('type', $c['type'])
+                         ->where('payment_month', $c['payment_month'] ?? 'Select Month')
+                         ->whereYear('payment_date', date('Y', strtotime($c['payment_date'])));
+            });
     }
 
-    /**
-     * Custom validation messages.
-     */
+    return $rules;
+}
+
     public function messages(): array
     {
         return [
-            'courses.*.course_id.unique' => 'Murid telah tercatat membayar bulan ' . ($this->input('courses.0.payment_month') ?? "Bulan Tidak Diketahui") . '.',
+            'courses.required'           => 'Minimal ada 1 pembayaran yang valid.',
+            'courses.*.course_id.unique' => 'Murid telah tercatat membayar bulan ' . ($this->input('courses.0.payment_month') ?? 'Bulan Tidak Diketahui') . '.',
         ];
     }
 }

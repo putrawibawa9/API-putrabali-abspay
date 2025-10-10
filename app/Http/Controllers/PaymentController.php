@@ -73,53 +73,86 @@ class PaymentController extends Controller
     /**
      * Store a newly created resource in storage.
      */
+
+
 public function store(PaymentRequest $request)
-    {
-        // dd($request->all());
-        $studentId = $request['student_id'];
-        $courses = $request['courses'];
+{
+    // Ambil data yang SUDAH difilter & tervalidasi oleh PaymentRequest
+    $validated  = $request->validated();
+    $studentId  = $validated['student_id'];
+    $courses    = $validated['courses']; // hanya item yang dibayar (payment_amount > 0)
 
+    // Kalau ternyata kosong (mis. semua item amount-nya null/0), PaymentRequest sudah akan gagal.
+    // Tapi untuk berjaga-jaga:
+    if (empty($courses)) {
+        return response()->json([
+            'message' => 'Tidak ada pembayaran yang valid.',
+        ], 422);
+    }
 
+    // Jalankan atomic transaction
+    DB::transaction(function () use ($courses, $studentId, $request) {
         foreach ($courses as $courseData) {
-            // Check the type and set payment_amount to 50000 if type is modul, pendaftaran, or ujian
-            if (in_array($courseData['type'], ['modul', 'pendaftaran', 'ujian'])) {
+            // Normalisasi tarif untuk jenis tertentu
+            if (in_array($courseData['type'], ['modul', 'pendaftaran', 'ujian'], true)) {
                 $courseData['payment_amount'] = 50000;
-                $courseData['payment_month'] = null;
+                $courseData['payment_month']  = null;
             }
 
-            Payment::create([
-                'student_id' => $studentId,
-                'course_id' => $courseData['course_id'],
-                'payment_date' => $courseData['payment_date'],
-                'payment_month' => $courseData['payment_month'],
-                'type' => $courseData['type'],
+            // 1) Simpan Payment
+            $payment = Payment::create([
+                'student_id'     => $studentId,
+                'course_id'      => $courseData['course_id'],
+                'payment_date'   => $courseData['payment_date'],
+                'payment_month'  => $courseData['payment_month'] ?? null,
+                'type'           => $courseData['type'],
                 'payment_amount' => $courseData['payment_amount'],
-                'user_id'    => $request->user_id ?? null,
-            'teacher_id' => $request->teacher_id ?? null,
+                'user_id'        => $request->user_id ?? null,
+                'teacher_id'     => $request->teacher_id ?? null,
             ]);
-// pisahkan berdasarkan jenis pembayaran
+
+            // 2) Tentukan kategori keuangan & catatan
             if ($courseData['type'] === 'spp') {
-                $category = FinanceCategory::where('code', 'P001')->first(); // Assuming 'P001' is the code for course fees
-                $note = 'Pembayaran SPP untuk bulan ' . ($courseData['payment_month'] ?? '-') . ' - Kursus ID: ' . $courseData['course_id'];
+                $category = FinanceCategory::where('code', 'P001')->first(); // SPP
+                $note     = 'Pembayaran SPP untuk bulan ' . ($courseData['payment_month'] ?? '-') .
+                            ' - Kursus ID: ' . $courseData['course_id'];
             } elseif ($courseData['type'] === 'modul') {
-                $category = FinanceCategory::where('code', 'P002')->first(); // Assuming 'P002' is the code for other fees
-                $note = 'Pembayaran Modul - Kursus ID: ' . $courseData['course_id'];
+                $category = FinanceCategory::where('code', 'P002')->first(); // Modul
+                $note     = 'Pembayaran Modul - Kursus ID: ' . $courseData['course_id'];
             } else {
-               $category = FinanceCategory::where('code', 'P003')->first(); // Assuming 'P003' is the code for other fees
-               $note = "Pembayaran Ujian / Pendaftaran - Kursus ID: " . $courseData['course_id'];
+                $category = FinanceCategory::where('code', 'P003')->first(); // Ujian/Pendaftaran
+                $note     = 'Pembayaran Ujian / Pendaftaran - Kursus ID: ' . $courseData['course_id'];
             }
+
+            // *Guard* kalau kategori tidak ditemukan (lebih aman daripada nge-null error)
+            if (!$category) {
+                throw new \RuntimeException(
+                    'Kategori keuangan tidak ditemukan untuk type: ' . $courseData['type']
+                );
+            }
+
+            // 3) Catat ke FinanceEntry
             FinanceEntry::create([
                 'finance_category_id' => $category->id,
-                'direction' => 'income',
-                'amount' => $courseData['payment_amount'],
-                'note' => $note,
+                'direction'           => 'income',
+                'amount'              => $courseData['payment_amount'],
+                'note'                => $note,
             ]);
-        }
 
-        return response()->json([
-            'message' => 'Payments saved successfully!',
-        ], 201);
-    }
+            // 4) (Opsional) Aktifkan partisipasi per-kelas setelah ada pembayaran
+            // Abaikan jika kamu tidak punya kolom is_active
+            StudentCourse::where('student_id', $studentId)
+                ->where('course_id', $courseData['course_id'])
+                ->update(['is_active' => true]);
+        }
+    });
+
+    return response()->json([
+        'message' => 'Payments saved successfully!',
+        'processed' => count($courses),
+    ], 201);
+}
+
 
 
 
