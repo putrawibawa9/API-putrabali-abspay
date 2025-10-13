@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Carbon\Carbon;
 use App\Models\Course;
 use App\Models\Absence;
 use App\Models\Meeting;
@@ -107,26 +108,44 @@ public function store(AbsenceRequest $request)
         //
     }
 
+
 public function getAbsenceHistory($id)
 {
     $student = Student::with([
         'studentsCourses.course',
         'studentsCourses.absences' => function ($query) {
-            $query->with('meeting'); // Ensure absences load with meetings
+            $query->with('meeting'); // pastikan meeting ikut di-load
         },
     ])->findOrFail($id);
-//   Log::info($student->studentsCourses->toArray());
-    $absenceHistory = $student->studentsCourses->map(function ($studentsCourse) {
+
+    $absenceHistory = $student->studentsCourses->map(function ($sc) {
+        // Urutkan absences dari meeting paling baru (tanggal + waktu jika ada)
+        $sortedAbsences = $sc->absences
+            ->sortByDesc(function ($a) {
+                $date = optional($a->meeting)->date;
+                $time = optional($a->meeting)->time;
+                return $date . ' ' . ($time ?? '00:00:00');
+            })
+            ->values();
+
         return [
             'course' => [
-                'alias' => $studentsCourse->course->alias,
-                'subject' => $studentsCourse->course->subject,
+                'alias'   => $sc->course->alias,
+                'subject' => $sc->course->subject,
             ],
-            'absences' => $studentsCourse->absences->map(function ($absence) {
+            'absences' => $sortedAbsences->map(function ($a) {
+                $date = optional($a->meeting)->date;
+                $time = optional($a->meeting)->time;
+
+                // Format jadi "09 Oktober 2025"
+                $formattedDate = $date
+                    ? Carbon::parse($date)->locale('id')->translatedFormat('d F Y')
+                    : null;
+
                 return [
-                    'meeting_date' => $absence->meeting->date,
-                    'meeting_time' => $absence->meeting->time,
-                    'status' => $absence->status,
+                    'meeting_date' => $formattedDate, // contoh: "09 Oktober 2025"
+                    'meeting_time' => $time,          // biarkan apa adanya; hapus jika tidak perlu
+                    'status'       => $a->status,
                 ];
             })->toArray(),
         ];
@@ -134,6 +153,4 @@ public function getAbsenceHistory($id)
 
     return response()->json($absenceHistory);
 }
-
-
 }
