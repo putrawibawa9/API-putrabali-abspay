@@ -116,23 +116,25 @@ public function getAbsenceHistory($id)
         },
     ])->findOrFail($id);
 //   Log::info($student->studentsCourses->toArray());
-    $absenceHistory = $student->studentsCourses->map(function ($studentsCourse) {
-        return [
-            'course' => [
-                'alias' => $studentsCourse->course->alias,
-                'subject' => $studentsCourse->course->subject,
-            ],
-            'absences' => $studentsCourse->absences->map(function ($absence) {
-                return [
-                    'meeting_date' => $absence->meeting->date,
-                    'meeting_time' => $absence->meeting->time,
-                    'status' => $absence->status,
-                ];
-            })->toArray(),
+    // Flatten all absences across student's courses, attach course info and meeting, then sort by latest created
+    $allAbsences = $student->studentsCourses->flatMap(function ($studentsCourse) {
+        $courseInfo = [
+            'alias' => $studentsCourse->course->alias,
+            'subject' => $studentsCourse->course->subject,
         ];
-    });
 
-    return response()->json($absenceHistory);
+        return $studentsCourse->absences->map(function ($absence) use ($courseInfo) {
+            return [
+                'course' => $courseInfo,
+                'meeting_date' => optional($absence->meeting)->date,
+                'meeting_time' => optional($absence->meeting)->time,
+                'status' => $absence->status,
+                'recorded_at' => $absence->created_at,
+            ];
+        });
+    })->sortByDesc('recorded_at')->values();
+
+    return response()->json($allAbsences);
 }
 
 
