@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class TeacherRequest extends FormRequest
 {
@@ -21,34 +22,42 @@ class TeacherRequest extends FormRequest
      */
     public function rules(): array
     {
-       return [
-    'name' => [
-        'sometimes', // Only validate if present in the request
-        'required',
-        'string',
-        'max:255',
-        'unique:teachers,name'
-    ],
-    'alias' => [
-        'sometimes', // Only validate if present in the request
-        'string',
-        'max:50',
-        'unique:teachers,alias'
-    ],
-    'username' => [
-        'sometimes', // Only validate if present in the request
-        'required',
-        'string',
-        'max:50',
-        'unique:teachers,username'
-    ],
-    'password' => [
-        'sometimes', // Only validate if present in the request
-        'required',
-        'string',
-        'min:8'
-    ],
-];
+        $teacherId = $this->route('teacher') ? $this->route('teacher')->id : null;
+
+        return [
+            'name' => [
+                'sometimes', // Only validate if present in the request
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('teachers', 'name')->ignore($teacherId),
+            ],
+            'alias' => [
+                'sometimes', // Only validate if present in the request
+                'string',
+                'max:50',
+                Rule::unique('teachers', 'alias')->ignore($teacherId),
+            ],
+            'username' => [
+                'sometimes', // Only validate if present in the request
+                'required',
+                'string',
+                'max:50',
+                Rule::unique('teachers', 'username')->ignore($teacherId),
+            ],
+            'password' => [
+                'sometimes', // Only validate if present in the request
+                'required',
+                'string',
+                'min:8'
+            ],
+            'instagram' => [
+                'sometimes',
+                'nullable',
+                'string',
+                'max:255',
+            ],
+        ];
     }
 
    

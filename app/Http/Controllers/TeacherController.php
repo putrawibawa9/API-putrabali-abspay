@@ -39,6 +39,10 @@ class TeacherController extends Controller
         $teacher->username = $request->username;
         $teacher->password = bcrypt($request->password);
         $teacher->alias = $request->alias;
+        // optional instagram
+        if ($request->filled('instagram')) {
+            $teacher->instagram = $request->instagram;
+        }
         $teacher->save();
         return response(null, 201);
     }
@@ -69,6 +73,11 @@ class TeacherController extends Controller
        $validated = $request->validated();
     //    dd($validated);
     // update the student in the database
+    // if password is present, bcrypt it
+    if (isset($validated['password'])) {
+        $validated['password'] = bcrypt($validated['password']);
+    }
+
     $teacher->update($validated);
     return response(null, 204);
     }
