@@ -70,6 +70,7 @@ class TeacherController extends Controller
      */
     public function update(TeacherRequest $request, Teacher $teacher)
     {
+        
        $validated = $request->validated();
     //    dd($validated);
     // update the student in the database
