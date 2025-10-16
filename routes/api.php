@@ -12,6 +12,7 @@ use App\Http\Controllers\TeacherController;
 use App\Http\Controllers\ScheduleController;
 use App\Http\Controllers\AssessmentController;
 use App\Http\Controllers\AttendanceController;
+use App\Http\Controllers\RepostProofController;
 use App\Http\Controllers\FinanceEntryController;
 use App\Http\Controllers\StudentCourseController;
 use App\Http\Controllers\AuthenticationController;
@@ -89,6 +90,7 @@ Route::prefix('v1')->group(function () {
 
 
 Route::resource('/assessments', AssessmentController::class);
+Route::resource('/repost-proofs', RepostProofController::class);
 
 Route::get('courses/{course}/assessments', [AssessmentController::class, 'indexByCourse']);
 
