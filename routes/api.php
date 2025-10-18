@@ -91,15 +91,16 @@ Route::prefix('v1')->group(function () {
 
 Route::resource('/assessments', AssessmentController::class);
 Route::resource('/repost-proofs', RepostProofController::class);
+Route::get('/repost-proofs-all', [RepostProofController::class, 'allTeacherReposts']);
 
 Route::get('courses/{course}/assessments', [AssessmentController::class, 'indexByCourse']);
 
-Route::prefix('grades')->group(function () {
-    Route::post('bulk', [GradeController::class, 'bulkStore']);          // bulk upsert grades
-});
+// Route::prefix('grades')->group(function () {
+//     Route::post('bulk', [GradeController::class, 'bulkStore']);         
+// });
 
-Route::get('students/{student}/grades', [GradeController::class, 'indexByStudent']);
-Route::get('courses/{course}/grades', [GradeController::class, 'indexByCourse']);
-Route::get('students/{student}/final-scores', [GradeController::class, 'finalScoresByStudent']);
+// Route::get('students/{student}/grades', [GradeController::class, 'indexByStudent']);
+// Route::get('courses/{course}/grades', [GradeController::class, 'indexByCourse']);
+// Route::get('students/{student}/final-scores', [GradeController::class, 'finalScoresByStudent']);
 
 });

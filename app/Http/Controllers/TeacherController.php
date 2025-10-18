@@ -4,8 +4,10 @@ namespace App\Http\Controllers;
 
 use DateTime;
 use App\Models\Teacher;
+use App\Models\RepostProof;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 use App\Http\Requests\TeacherRequest;
 
 class TeacherController extends Controller
@@ -13,13 +15,34 @@ class TeacherController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
-    {
-        // paginate and latest data first
+  public function index(Request $request)
+{
+    $month = $request->query('month', now()->month);
+    $year  = $request->query('year', now()->year);
 
-        $teachers = Teacher::latest()->paginate(50);
-        return response()->json($teachers);
-    }
+    // Ambil data guru seperti biasa
+    $teachers = Teacher::latest()->paginate(50);
+
+    // Ambil ID semua guru yang ada di halaman ini
+    $teacherIds = $teachers->pluck('id');
+
+    // Ambil jumlah repost per guru (di bulan & tahun yang diminta)
+    $repostCounts = RepostProof::select('teacher_id', DB::raw('COUNT(*) as total_reposts'))
+        ->whereYear('created_at', $year)
+        ->whereMonth('created_at', $month)
+        ->whereIn('teacher_id', $teacherIds)
+        ->groupBy('teacher_id')
+        ->pluck('total_reposts', 'teacher_id');
+
+    // Tambahkan field baru ke setiap guru di dalam collection
+    $teachers->getCollection()->transform(function ($teacher) use ($repostCounts) {
+        $teacher->total_reposts_this_month = $repostCounts[$teacher->id] ?? 0;
+        return $teacher;
+    });
+
+    // Kembalikan response JSON dengan struktur bawaan pagination Laravel
+    return response()->json($teachers);
+}
 
     /**
      * Show the form for creating a new resource.
@@ -94,14 +117,39 @@ class TeacherController extends Controller
              return response(null, 204);
     }
 
-      public function search(Request $request)
-    {
-        $teachers = Teacher::where('name', 'like', '%' . $request->search . '%')
-            ->orWhere('alias', 'like', '%' . $request->search . '%')
-            ->paginate(5)
-            ->appends($request->query());
-        return response()->json($teachers);
-    }
+     public function search(Request $request)
+{
+    $month = $request->query('month', now()->month);
+    $year  = $request->query('year', now()->year);
+    $search = $request->input('search');
+
+    // 🔹 Ambil guru sesuai pencarian (name atau alias)
+    $teachers = Teacher::where('name', 'like', "%{$search}%")
+        ->orWhere('alias', 'like', "%{$search}%")
+        ->orderByDesc('created_at')
+        ->paginate(5)
+        ->appends($request->query());
+
+    // 🔹 Ambil ID guru yang muncul di hasil pencarian
+    $teacherIds = $teachers->pluck('id');
+
+    // 🔹 Ambil jumlah repost guru bulan & tahun ini
+    $repostCounts = RepostProof::select('teacher_id', DB::raw('COUNT(*) as total_reposts'))
+        ->whereYear('created_at', $year)
+        ->whereMonth('created_at', $month)
+        ->whereIn('teacher_id', $teacherIds)
+        ->groupBy('teacher_id')
+        ->pluck('total_reposts', 'teacher_id');
+
+    // 🔹 Tambahkan field baru ke setiap item di collection
+    $teachers->getCollection()->transform(function ($teacher) use ($repostCounts) {
+        $teacher->total_reposts_this_month = $repostCounts[$teacher->id] ?? 0;
+        return $teacher;
+    });
+
+    // 🔹 Kembalikan response JSON seperti biasa (dengan pagination Laravel)
+    return response()->json($teachers);
+}
     
    public function recapTeacherAbsences(Request $request)
 {

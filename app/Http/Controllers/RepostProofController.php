@@ -24,6 +24,33 @@ class RepostProofController extends Controller
         return view('reposts.index', compact('reposts', 'month', 'year'));
     }
 
+
+    public function allTeacherReposts(Request $request)
+    {
+        // dd(123);
+        $month = $request->input('month', now()->month);
+        $year = $request->input('year', now()->year);
+
+        $reposts = RepostProof::with('teacher')
+            ->whereYear('created_at', $year)
+            ->whereMonth('created_at', $month)
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'data' => $reposts->map(function ($repost) {
+                return [
+                    'id' => $repost->id,
+                    'teacher_id' => $repost->teacher_id,
+                    'teacher_name' => $repost->teacher->name,
+                    'proof_url' => asset('storage/' . $repost->proof_path),
+                    'uploaded_at' => $repost->created_at->format('d M Y H:i'),
+                ];
+            }),
+        ]);
+    }
+
     /**
      * Show the form for creating a new resource.
      */
