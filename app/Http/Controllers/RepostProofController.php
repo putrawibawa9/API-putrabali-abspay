@@ -112,13 +112,12 @@ class RepostProofController extends Controller
     /**
      * Display the specified resource.
      */
-  public function show(Request $request, $teacher_id)
+ public function show(Request $request, $teacher_id)
 {
-    // Ambil bulan & tahun dari query (opsional)
-    $month = $request->input('month', now()->month);
-    $year  = $request->input('year', now()->year);
+    $month = (int) $request->input('month', now()->month);
+    $year  = (int) $request->input('year', now()->year);
 
-    // Validasi kalau guru tidak ada
+    // 🔹 Validasi guru
     if (!\App\Models\Teacher::where('id', $teacher_id)->exists()) {
         return response()->json([
             'success' => false,
@@ -126,21 +125,36 @@ class RepostProofController extends Controller
         ], 404);
     }
 
-    // Hitung jumlah upload guru pada bulan & tahun tertentu
+    // 🔹 Hitung total upload repost guru di bulan & tahun tertentu
     $count = \App\Models\RepostProof::where('teacher_id', $teacher_id)
         ->whereYear('created_at', $year)
         ->whereMonth('created_at', $month)
         ->count();
-        $month = (int) $request->input('month', now()->month);
-$year  = (int) $request->input('year', now()->year);
 
+    // 🔹 Ambil daftar file proof (hanya path dan waktu upload)
+    $proofs = \App\Models\RepostProof::where('teacher_id', $teacher_id)
+        ->whereYear('created_at', $year)
+        ->whereMonth('created_at', $month)
+        ->orderByDesc('created_at')
+        ->get(['id', 'proof_path', 'created_at'])
+        ->map(function ($proof) {
+            return [
+                'id' => $proof->id,
+                'url' => asset('storage/' . $proof->proof_path),
+                'uploaded_at' => $proof->created_at->format('d M Y H:i'),
+            ];
+        });
+
+    // 🔹 Response JSON tetap sama strukturnya, hanya ditambah key `proofs`
     return response()->json([
         'teacher_id' => $teacher_id,
         'month' => \Carbon\Carbon::create()->month($month)->format('F'),
         'year' => $year,
         'count' => $count,
+        'proofs' => $proofs,
     ]);
 }
+
 
 
 
