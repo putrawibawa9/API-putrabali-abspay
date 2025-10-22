@@ -62,7 +62,7 @@ class RepostProofController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-      public function store(Request $request)
+   public function store(Request $request)
 {
     try {
         $request->validate([
@@ -71,26 +71,42 @@ class RepostProofController extends Controller
         ]);
 
         $teacherId = $request->input('teacher_id');
-        $path = $request->file('proof')->store('reposts/' . date('Y/m'), 'public');
 
+        // Buat folder tujuan di public/uploads/reposts/YYYY/MM
+        $uploadPath = public_path('uploads/reposts/' . date('Y/m'));
+
+        // Pastikan folder-nya ada
+        if (!file_exists($uploadPath)) {
+            mkdir($uploadPath, 0775, true);
+        }
+
+        // Simpan file ke folder publik
+        $file = $request->file('proof');
+        $filename = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+        $file->move($uploadPath, $filename);
+
+        // Simpan path relatif untuk disimpan ke database
+        $relativePath = 'uploads/reposts/' . date('Y/m') . '/' . $filename;
+
+        // Simpan ke database
         $proof = \App\Models\RepostProof::create([
             'teacher_id' => $teacherId,
-            'proof_path' => $path,
+            'proof_path' => $relativePath,
         ]);
 
+        // Response JSON
         return response()->json([
             'success' => true,
             'message' => 'Upload berhasil',
             'data' => [
                 'id' => $proof->id,
                 'teacher_id' => $teacherId,
-                'url' => asset('storage/' . $path),
+                'url' => asset($relativePath),
                 'uploaded_at' => $proof->created_at->format('d M Y H:i'),
             ],
         ], 201);
 
     } catch (\Illuminate\Validation\ValidationException $e) {
-        // ⛔ kalau validasi gagal
         return response()->json([
             'success' => false,
             'message' => 'Validasi gagal',
@@ -98,13 +114,13 @@ class RepostProofController extends Controller
         ], 422);
 
     } catch (\Exception $e) {
-        // ⛔ kalau ada error lain (misalnya storage penuh)
         return response()->json([
             'success' => false,
             'message' => 'Upload gagal: ' . $e->getMessage(),
         ], 500);
     }
 }
+
 
 
 
@@ -140,7 +156,7 @@ class RepostProofController extends Controller
         ->map(function ($proof) {
             return [
                 'id' => $proof->id,
-                'url' => asset('storage/' . $proof->proof_path),
+                'url' => asset( $proof->proof_path),
                 'uploaded_at' => $proof->created_at->format('d M Y H:i'),
             ];
         });
