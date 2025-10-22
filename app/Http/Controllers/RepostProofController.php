@@ -156,7 +156,7 @@ class RepostProofController extends Controller
         ->map(function ($proof) {
             return [
                 'id' => $proof->id,
-                'url' => asset( $proof->proof_path),
+                'url' => asset('public/'. $proof->proof_path),
                 'uploaded_at' => $proof->created_at->format('d M Y H:i'),
             ];
         });
