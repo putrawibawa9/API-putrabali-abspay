@@ -17,6 +17,7 @@ use App\Http\Controllers\FinanceEntryController;
 use App\Http\Controllers\StudentCourseController;
 use App\Http\Controllers\AuthenticationController;
 use App\Http\Controllers\RecapitulationController;
+use App\Models\Payment;
 
 Route::prefix('v1')->group(function () {
 
@@ -77,6 +78,8 @@ Route::prefix('v1')->group(function () {
 
 
         Route::get('/unpaid', [RecapitulationController::class, 'unpaid'])->name('reports.unpaid');
+        Route::get('/getUnpaidStudents', [PaymentController::class, 'getUnpaidStudents'])->name('reports.getUnpaidStudents');
+
 
         Route::resource('/finance-entries', FinanceEntryController::class);
         Route::get('/finance-entries-categories', [FinanceEntryController::class, 'allCategoriesWithEntries']);

@@ -127,6 +127,52 @@ public function update(StudentRequest $request, Student $student)
         return response()->json(['sum' => $sum, 'students' => $students]);
     }
 
+    public function getUnpaidStudents()
+    {
+        // Tentukan 2 bulan target berdasarkan tanggal hari ini (23 Okt 2025)
+        // Kita pakai nama bulan bahasa Inggris (lowercase) sesuai data di tabel payments
+        $bulanLalu = strtolower(now()->subMonth()->format('F')); // Hasilnya: "september"
+        $duaBulanLalu = strtolower(now()->subMonths(2)->format('F')); // Hasilnya: "august"
+
+        // Ambil tahun ini untuk filter, biar data tahun lalu nggak ikut keambil
+        $tahunIni = now()->year; // 2025
+
+        $students = Student::query()
+            // 1. Hanya ambil murid yang aktif di setidaknya SATU kursus
+            ->whereHas('studentCourses', function ($query) {
+                $query->where('is_active', 1);
+            })
+            
+            // 2. Filter murid yang TIDAK PUNYA rekaman bayar SPP bulan lalu
+            ->whereDoesntHave('payments', function ($query) use ($bulanLalu, $tahunIni) {
+                $query->where('type', 'spp')
+                      ->where('payment_month', $bulanLalu)
+                      // Cek 'payment_date' untuk mastiin ini bayaran tahun ini
+                      ->whereYear('payment_date', $tahunIni);
+            })
+            
+            // 3. DAN JUGA TIDAK PUNYA rekaman bayar SPP dua bulan lalu
+            ->whereDoesntHave('payments', function ($query) use ($duaBulanLalu, $tahunIni) {
+                $query->where('type', 'spp')
+                      ->where('payment_month', $duaBulanLalu)
+                      // Cek 'payment_date' untuk mastiin ini bayaran tahun ini
+                      ->whereYear('payment_date', $tahunIni);
+            })
+            
+            // Ambil data muridnya
+            ->select('id', 'nis', 'name', 'wa_number') // Ambil kolom yg perlu aja
+            ->get();
+
+        // 4. Kembalikan dalam bentuk JSON
+        return response()->json([
+            'message' => 'Sukses mengambil data murid yang nunggak 2 bulan',
+            'unpaid_months' => [$duaBulanLalu, $bulanLalu],
+            'year' => $tahunIni,
+            'count' => $students->count(),
+            'data' => $students
+        ]);
+    }
+
     
 
 

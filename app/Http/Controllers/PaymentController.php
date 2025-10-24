@@ -298,6 +298,45 @@ public function paymentRecap(Request $request)
         ]);
     }
 
+   public function getUnpaidStudents()
+{
+    $bulanLalu = strtolower(now()->subMonth()->format('F'));
+    $duaBulanLalu = strtolower(now()->subMonths(2)->format('F'));
+    $tahunIni = now()->year;
+
+    $students = Student::query()
+        // Hanya murid aktif
+        ->whereHas('activeCourses')
+
+        // Hanya yang daftar sebelum bulan lalu
+        ->whereDate('enroll_date', '<', now()->subMonth()->startOfMonth())
+
+        // Tidak punya pembayaran bulan lalu
+        ->whereDoesntHave('payments', function ($query) use ($bulanLalu, $tahunIni) {
+            $query->where('type', 'spp')
+                  ->where('payment_month', $bulanLalu)
+                  ->whereYear('payment_date', $tahunIni);
+        })
+        // Dan tidak punya pembayaran dua bulan lalu
+        ->whereDoesntHave('payments', function ($query) use ($duaBulanLalu, $tahunIni) {
+            $query->where('type', 'spp')
+                  ->where('payment_month', $duaBulanLalu)
+                  ->whereYear('payment_date', $tahunIni);
+        })
+        ->select('id', 'nis', 'name', 'wa_number')
+        ->get();
+
+    return response()->json([
+        'message' => 'Sukses mengambil data murid yang nunggak 2 bulan',
+        'unpaid_months' => [$duaBulanLalu, $bulanLalu],
+        'year' => $tahunIni,
+        'count' => $students->count(),
+        'data' => $students
+    ]);
+}
+
+
+
  public function dailyRecap(Request $request)
 {
     // VALIDASI SEDERHANA (opsional tapi disarankan)
