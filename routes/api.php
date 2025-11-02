@@ -93,6 +93,11 @@ Route::prefix('v1')->group(function () {
 
 
 Route::resource('/assessments', AssessmentController::class);
+Route::get('/assessments/course/{course_id}', [AssessmentController::class, 'getByCourse']);
+
+
+
+
 Route::resource('/repost-proofs', RepostProofController::class);
 Route::get('/repost-proofs-all', [RepostProofController::class, 'allTeacherReposts']);
 

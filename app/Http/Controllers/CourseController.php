@@ -120,9 +120,8 @@ public function courseFilter(Request $request)
     $course->subject = $request->subject;
     $course->alias = $request->alias;
     $course->payment_rate = $request->payment_rate;
+    $course->teaching_rate = $request->teaching_rate;
 
-    // Set teaching_rate otomatis berdasarkan level
-    $course->teaching_rate = $this->getTeachingRateByLevel($request->level);
 
     $course->save();
 
@@ -180,12 +179,7 @@ public function courseFilter(Request $request)
      */
   public function update(Request $request, Course $course)
 {
-    // Validasi input
    
-    // Hitung teaching_rate berdasarkan level
-    $request['teaching_rate'] = $this->getTeachingRateByLevel($request['level']);
-
-    // Update course di database
     $course->update($request->all());
     
     return response()->noContent(); // response(null, 204)

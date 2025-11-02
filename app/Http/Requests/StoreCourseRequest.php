@@ -20,9 +20,9 @@ class StoreCourseRequest extends FormRequest
     return [
         'level' => 'string|max:255',
         'section' => 'string|max:255',
-       
         'alias' => 'nullable|string|max:255|unique:courses,alias',
         'payment_rate' => 'numeric|min:0',
+        'teaching_rate' => 'numeric|min:0',
     ];
 }
 

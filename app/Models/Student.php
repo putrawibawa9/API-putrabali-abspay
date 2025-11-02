@@ -45,6 +45,12 @@ public function activeCourses()
                 ->withPivot('id','custom_payment_rate'); // Include the custom_payment_rate
 }
 
+public function assessments()
+{
+    return $this->hasMany(Assessment::class);
+}
+
+
 
 
 
