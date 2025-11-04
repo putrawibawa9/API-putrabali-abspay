@@ -28,10 +28,10 @@ public function rules()
     // Get the ID of the student being updated (if it's an update request)
     $studentId = $this->student ? $this->student->id : null;
 
-
     return [
         // validate date request not to store before the current date
         'enroll_date' => 'required|date|sometimes',
+
         'name' => [
             'sometimes', // Only validate if present in the request
             'required',
@@ -39,6 +39,7 @@ public function rules()
             'max:255',
             // 'unique:students,name,' . $studentId
         ],
+
         'wa_number' => [
             'sometimes', // Only validate if present in the request
             'required',
@@ -47,12 +48,14 @@ public function rules()
             'max:15',
             // 'unique:students,wa_number,' . $studentId
         ],
+
         'gender' => [
             'sometimes',
             'required',
             'string',
             'in:Male,Female'
         ],
+
         'school' => [
             'sometimes',
             'required',
@@ -60,9 +63,23 @@ public function rules()
             'max:255'
         ],
 
-    
+        // 🆕 Tambahan validasi untuk NIK dan NISN
+        'nik' => [
+            'sometimes',    // hanya divalidasi kalau dikirim di request
+            'nullable',     // boleh kosong
+            'digits:16',    // NIK Indonesia harus 16 digit
+            'unique:students,nik,' . $studentId, // tidak boleh duplikat kecuali data sendiri
+        ],
+
+        'nisn' => [
+            'sometimes',
+            'nullable',
+            'digits:10',    // NISN biasanya 10 digit
+            'unique:students,nisn,' . $studentId,
+        ],
     ];
 }
+
 
 
 public function withValidator($validator)

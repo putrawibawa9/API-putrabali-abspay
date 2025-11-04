@@ -16,6 +16,8 @@ class Student extends Model
         'gender',
         'school',
         'enroll_date',
+        'nik',
+        'nisn',
     ];
 
      // One student has many student enrollments

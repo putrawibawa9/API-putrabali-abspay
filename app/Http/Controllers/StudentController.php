@@ -32,9 +32,8 @@ class StudentController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StudentRequest $studentRequest)
+  public function store(StudentRequest $studentRequest)
 {
-
     // Add a new student to the database
     $latestNis = Student::max('nis');
     $student = new Student();
@@ -44,6 +43,11 @@ class StudentController extends Controller
     $student->gender = $studentRequest->gender;
     $student->school = $studentRequest->school;
     $student->enroll_date = $studentRequest->enroll_date;
+
+    // 🆕 Tambahan kolom baru
+    $student->nik = $studentRequest->nik ?? null;
+    $student->nisn = $studentRequest->nisn ?? null;
+
     $student->save();
 
     // Enroll the student in one or multiple courses
@@ -52,14 +56,14 @@ class StudentController extends Controller
         $studentCourse = new StudentCourse();
         $studentCourse->student_id = $student->id;
         $studentCourse->course_id = $course['course_id'];
-      
         $studentCourse->custom_payment_rate = $course['custom_payment_rate'] ?? null; // Optional
         $studentCourse->save();
     }
 
-//   response the student new id and also the courses that the student enroll
+    // Response the student new id and also the courses that the student enroll
     return response()->json($student->id, 201);
 }
+
 
 
     /**
@@ -85,13 +89,14 @@ class StudentController extends Controller
      */
 public function update(StudentRequest $request, Student $student)
 {
-    // if nothing changed, return the student id
-    
-    $validated = $request->validated();
-    // dd($student->id);
-    // update the student in the database
+    $validated = $request->validated(); // otomatis melempar error jika validasi gagal
+
     $student->update($validated);
-    return response()->json($student->id, 201);
+
+    return response()->json([
+        'message' => 'Student updated successfully',
+        'student_id' => $student->id,
+    ], 200);
 }
 
 
