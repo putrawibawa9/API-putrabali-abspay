@@ -1,4 +1,5 @@
 <?php
+use App\Models\Payment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UserController;
@@ -12,12 +13,12 @@ use App\Http\Controllers\TeacherController;
 use App\Http\Controllers\ScheduleController;
 use App\Http\Controllers\AssessmentController;
 use App\Http\Controllers\AttendanceController;
+use App\Http\Controllers\CoursePriceController;
 use App\Http\Controllers\RepostProofController;
 use App\Http\Controllers\FinanceEntryController;
 use App\Http\Controllers\StudentCourseController;
 use App\Http\Controllers\AuthenticationController;
 use App\Http\Controllers\RecapitulationController;
-use App\Models\Payment;
 
 Route::prefix('v1')->group(function () {
 
@@ -110,5 +111,15 @@ Route::get('courses/{course}/assessments', [AssessmentController::class, 'indexB
 // Route::get('students/{student}/grades', [GradeController::class, 'indexByStudent']);
 // Route::get('courses/{course}/grades', [GradeController::class, 'indexByCourse']);
 // Route::get('students/{student}/final-scores', [GradeController::class, 'finalScoresByStudent']);
+
+
+// Course Prices
+Route::get('/course-prices', [CoursePriceController::class, 'index']);     // READ
+Route::post('/course-prices', [CoursePriceController::class, 'store']);    // CREATE
+Route::put('/course-prices/{id}', [CoursePriceController::class, 'update']); // UPDATE
+
+// cek harga per bulan dalam setahun untuk sebuah course
+Route::get('/course-prices/year/{course_id}/{year}', [CoursePriceController::class, 'yearly']);
+
 
 });
