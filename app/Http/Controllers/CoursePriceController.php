@@ -75,4 +75,52 @@ public function yearly($courseId, $year)
     ]);
 }
 
+ public function setMonthly(Request $request)
+    {
+        $validated = $request->validate([
+            'course_id' => 'required|integer|exists:courses,id',
+            'year' => 'required|integer|min:2000',
+            'month' => 'required|integer|min:1|max:12',
+            'price' => 'required|numeric|min:0',
+            'note' => 'nullable|string|max:255',
+        ]);
+
+        // cek apakah sudah ada data untuk bulan & tahun tsb
+        $existing = CoursePrice::where('course_id', $validated['course_id'])
+            ->where('year', $validated['year'])
+            ->where('month', $validated['month'])
+            ->first();
+
+        if ($existing) {
+            // UPDATE
+            $existing->update([
+                'price' => $validated['price'],
+                'note'  => $validated['note'] ?? $existing->note,
+            ]);
+
+            return response()->json([
+                'status'  => 'success',
+                'message' => 'Harga bulan ini berhasil diupdate.',
+                'action'  => 'updated',
+                'data'    => $existing
+            ]);
+        }
+
+        // CREATE BARU
+        $new = CoursePrice::create([
+            'course_id' => $validated['course_id'],
+            'year'      => $validated['year'],
+            'month'     => $validated['month'],
+            'price'     => $validated['price'],
+            'note'      => $validated['note'],
+        ]);
+
+        return response()->json([
+            'status'  => 'success',
+            'message' => 'Harga bulan ini berhasil ditambahkan.',
+            'action'  => 'created',
+            'data'    => $new
+        ], 201);
+    }
+
 }

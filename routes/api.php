@@ -120,6 +120,7 @@ Route::put('/course-prices/{id}', [CoursePriceController::class, 'update']); // 
 
 // cek harga per bulan dalam setahun untuk sebuah course
 Route::get('/course-prices/year/{course_id}/{year}', [CoursePriceController::class, 'yearly']);
+Route::post('/course-prices/set-monthly', [CoursePriceController::class, 'setMonthly']);
 
 
 });
