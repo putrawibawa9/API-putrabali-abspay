@@ -16,8 +16,8 @@ class StudentController extends Controller
     public function index()
     {
  
-    //    get all students latest data first and paginate
-        $students = Student::latest()->paginate(20);
+    //    get all students latest data and their active class first and paginate
+        $students = Student::with('activeCourses')->orderBy('created_at', 'desc')->paginate(20);
         return response()->json($students);
     }
 
