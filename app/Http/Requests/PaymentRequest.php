@@ -63,7 +63,7 @@ class PaymentRequest extends FormRequest
         'courses.*.payment_date'  => 'required|date',
         'courses.*.type'          => 'required|string|in:spp,modul,pendaftaran,ujian',
         'courses.*.payment_month' => 'nullable|string',
-        'courses.*.payment_amount'=> 'nullable|integer|min:1',
+        'courses.*.payment_amount'=> 'nullable|integer',
     ];
 
     foreach ($this->input('courses', []) as $i => $c) {
