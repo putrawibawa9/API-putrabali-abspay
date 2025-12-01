@@ -112,16 +112,17 @@ public function update(StudentRequest $request, Student $student)
 
    public function search(Request $request)
 {
- 
-    $search = $request->query('search'); // Use query() for GET requests
+    $search = $request->query('search');
 
-    $students = Student::where('name', 'like', '%' . $search . '%')
+    $students = Student::with('activeCourses')
+        ->where('name', 'like', '%' . $search . '%')
         ->orWhere('nis', 'like', '%' . $search . '%')
         ->paginate(20)
-        ->appends(['search' => $search]); // Append search term to pagination links
+        ->appends(['search' => $search]);
 
     return response()->json($students);
 }
+
 
 
     public function monthlyEnrolledStudent()
