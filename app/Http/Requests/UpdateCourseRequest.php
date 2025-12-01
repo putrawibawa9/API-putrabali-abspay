@@ -39,6 +39,7 @@ class UpdateCourseRequest extends FormRequest
             ],
             'payment_rate' => 'required|numeric|min:0',
             'teaching_rate' => 'required|numeric|min:0',
+            'lokasi_pb' => 'integer|in:1,2',
         ];
     }
 

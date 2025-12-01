@@ -23,6 +23,7 @@ class StoreCourseRequest extends FormRequest
         'alias' => 'nullable|string|max:255|unique:courses,alias',
         'payment_rate' => 'numeric|min:0',
         'teaching_rate' => 'numeric|min:0',
+        'lokasi_pb' => 'integer|in:1,2',
     ];
 }
 

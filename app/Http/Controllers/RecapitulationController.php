@@ -53,7 +53,8 @@ $formatted = 'Rp ' . number_format($expectedIncome, 0, ',', '.');
         ->whereYear('enroll_date', $year)
         ->count();  
     $totalTeachers = Teacher::count();
-    $totalActiveCourses = Course::where('is_active', 1)->count();
+    $totalActiveCoursesPB1 = Course::where('is_active', 1)->where('lokasi_pb', 1)->count();
+    $totalActiveCoursesPB2 = Course::where('is_active', 1)->where('lokasi_pb', 2)->count();
     $totalMeetingsInGivenMonth = Meeting::whereMonth('created_at', $month)
         ->whereYear('created_at', $year)
         ->count();
@@ -90,7 +91,8 @@ $formatted = 'Rp ' . number_format($expectedIncome, 0, ',', '.');
         'total_students' => $totalStudents,
         'total_enroll_students_in_given_month' => $totalEnrollStudentsInGivenMonth,
         'total_teachers' => $totalTeachers,
-        'total_active_courses' => $totalActiveCourses,
+        'total_active_courses_pb1' => $totalActiveCoursesPB1,
+        'total_active_courses_pb2' => $totalActiveCoursesPB2,
         'total_meetings_in_given_month' => $totalMeetingsInGivenMonth,
         'total_students_who_paid' => $persentageOfStudentsWhoPaid,
         'total_students_who_have_not_paid' => $percentageOfStudentsWhoHaveNotPaid,

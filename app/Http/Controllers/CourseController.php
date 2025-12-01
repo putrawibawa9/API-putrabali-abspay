@@ -121,6 +121,7 @@ public function courseFilter(Request $request)
     $course->alias = $request->alias;
     $course->payment_rate = $request->payment_rate;
     $course->teaching_rate = $request->teaching_rate;
+    $course->lokasi_pb = $request->lokasi_pb;
 
 
     $course->save();

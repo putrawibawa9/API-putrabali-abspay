@@ -15,6 +15,7 @@ class Course extends Model
         'subject',
         'alias',
         'payment_rate',
+           'lokasi_pb',
         'teaching_rate', // Added teaching_rate field
     ];
 
