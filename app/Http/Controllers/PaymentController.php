@@ -381,7 +381,7 @@ public function paymentRecap(Request $request)
     }
 
     // Urutkan berdasarkan payment_date (kamu filter pakai payment_date, jangan latest() default created_at)
-    $payments = $query->orderByDesc('payment_date')->get();
+    $payments = $query->orderByDesc('created_at')->get();
 
     $totalPaymentAmount = $payments->sum('payment_amount');
 
