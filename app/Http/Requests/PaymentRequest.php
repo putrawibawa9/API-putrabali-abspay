@@ -41,7 +41,7 @@ class PaymentRequest extends FormRequest
             }
             // SPP: harus ada nominal > 0
             if ($c['type'] === 'spp') {
-                return ($c['payment_amount'] ?? 0) > 0;
+                return ($c['payment_amount'] ?? 0) >= 0;
             }
             // Non-SPP: boleh tanpa nominal (server set 50k)
             return in_array($c['type'], ['modul','pendaftaran','ujian'], true);
