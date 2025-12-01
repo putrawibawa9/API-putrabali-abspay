@@ -41,7 +41,7 @@ class PaymentRequest extends FormRequest
             }
             // SPP: harus ada nominal > 0
             if ($c['type'] === 'spp') {
-                return ($c['payment_amount'] ?? 0) >= 0;
+                return is_numeric($c['payment_amount']);
             }
             // Non-SPP: boleh tanpa nominal (server set 50k)
             return in_array($c['type'], ['modul','pendaftaran','ujian'], true);
@@ -69,7 +69,7 @@ class PaymentRequest extends FormRequest
     foreach ($this->input('courses', []) as $i => $c) {
         // Wajibkan payment_amount & month untuk SPP
         if (($c['type'] ?? null) === 'spp') {
-            $rules["courses.$i.payment_amount"][] = \Illuminate\Validation\Rule::requiredIf(true);
+    $rules["courses.$i.payment_amount"] = ['required', 'integer'];
             $rules["courses.$i.payment_month"][]  = \Illuminate\Validation\Rule::requiredIf(true);
         }
 
