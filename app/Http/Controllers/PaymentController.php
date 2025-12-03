@@ -415,5 +415,19 @@ public function paymentRecap(Request $request)
     ]);
 }
     
+public function changeDate(Request $request){
+    $paymentId = $request->payment_id;
+    $newDate = $request->new_date;
+
+    $payment = Payment::find($paymentId);
+    if (!$payment) {
+        return response()->json(['error' => 'Payment not found'], 404);
+    }
+
+    $payment->payment_date = $newDate;
+    $payment->save();
+
+    return response()->json(['message' => 'Payment date updated successfully', 'payment' => $payment]);
+}
 
 }
