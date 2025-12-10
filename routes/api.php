@@ -124,4 +124,8 @@ Route::post('/course-prices/set-monthly', [CoursePriceController::class, 'setMon
 
 
 Route::post('/changeDate', [PaymentController::class, 'changeDate']);
+
+
+Route::get('/students/{id}/monthly-payment', [CoursePriceController::class, 'getMonthlyCoursePricebyStudent']);
+
 });

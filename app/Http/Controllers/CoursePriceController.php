@@ -3,8 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\Course;
+use App\Models\Student;
 use App\Models\CoursePrice;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class CoursePriceController extends Controller
 {
@@ -122,5 +124,65 @@ public function yearly($courseId, $year)
             'data'    => $new
         ], 201);
     }
+
+
+public function getMonthlyCoursePricebyStudent($studentId)
+{
+   
+    $student = Student::find($studentId);
+
+    if (!$student) {
+        return response()->json([
+            'message' => 'Student not found.'
+        ], 404);
+    }
+
+    $currentYear = now()->year;
+    $currentMonth = now()->month;
+
+    // Ambil semua kelas aktif yang diikuti murid
+    $activeCourses = DB::table('students_courses')
+        ->join('courses', 'students_courses.course_id', '=', 'courses.id')
+        ->where('students_courses.student_id', $studentId)
+        ->where('students_courses.is_active', true)
+        ->select('courses.id', 'courses.alias', 'courses.payment_rate')
+        ->get();
+
+    $result = [];
+    $totalPayment = 0;
+
+    foreach ($activeCourses as $course) {
+
+        // Cek apakah ada override harga di course_prices
+        $overridePrice = DB::table('course_prices')
+            ->where('course_id', $course->id)
+            ->where('year', $currentYear)
+            ->where('month', $currentMonth)
+            ->value('price');
+
+        $finalPrice = $overridePrice ?? $course->payment_rate;
+
+        $result[] = [
+            'course_id' => $course->id,
+            'course_alias' => $course->alias,
+            'default_rate' => $course->payment_rate,
+            'override_price' => $overridePrice,
+            'final_price_this_month' => $finalPrice,
+        ];
+
+        $totalPayment += $finalPrice;
+    }
+    // dd( $result);
+
+    return response()->json([
+        'student_id' => $student->id,
+        'student_name' => $student->name,
+        'month' => $currentMonth,
+        'year' => $currentYear,
+        'courses' => $result,
+        'total_payment' => $totalPayment
+    ]);
+}
+
 
 }
