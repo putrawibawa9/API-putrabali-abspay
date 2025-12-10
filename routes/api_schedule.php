@@ -10,6 +10,11 @@ Route::prefix('v1/scheduling')->group(function () {
     Route::post('/generateSemester', [NewScheduleController::class, 'generateSemester']);
   Route::post('/meeting/{meeting}/update', [NewScheduleController::class, 'updateMeeting']);
   Route::post('/course/{course}/change-recurring-schedule', [NewScheduleController::class, 'changeRecurringSchedule']);
+
+  Route::get('/meeting/{id}', [NewScheduleController::class, 'show']);
+
+  Route::get('/schedule', [NewScheduleController::class, 'teacherSchedule']);
+
     
     // Route::get('/teacher/schedule', [MeetingController::class, 'teacherSchedule']);
     // Route::get('/course/schedule/future', [MeetingController::class, 'courseFutureSchedule']);
@@ -18,4 +23,5 @@ Route::prefix('v1/scheduling')->group(function () {
     // Route::post('{meeting}/change-schedule', [MeetingController::class, 'changeSchedule']);
 
     // Route::get('/dailyMeeting', [MeetingController::class, 'dailyMeeting']);
-});
+}
+);

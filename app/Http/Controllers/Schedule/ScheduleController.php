@@ -151,11 +151,78 @@ public function changeRecurringSchedule(ChangeRecurringScheduleRequest $request,
 }
 
 
+public function teacherSchedule(Request $req)
+{
+    $req->validate([
+        'teacher_id' => 'required|exists:teachers,id',
+        'type'       => 'nullable|in:future,history,all'
+    ]);
+
+    $teacherId = $req->teacher_id;
+    $type = $req->type ?? 'all';
+    $today = now()->toDateString();
+
+    // Query dasar: guru utama atau guru pengganti
+    $query = Meeting::with([
+                'course:id,alias',
+                'teacher:id,name',
+           
+            ])
+            ->where(function($q) use ($teacherId) {
+                $q->where('teacher_id', $teacherId)
+                  ->orWhere('original_teacher_id', $teacherId);
+            })
+            ->orderBy('date', 'asc')
+            ->orderBy('time', 'asc');
+
+    // Filter tipe jadwal
+    if ($type === 'future') {
+        $query->where('date', '>=', $today)
+              ->where('is_canceled', false);
+    }
+    else if ($type === 'history') {
+        $query->where('date', '<', $today);
+    }
+
+    $meetings = $query->get();
+
+    // Transformasi data (lebih rapih untuk frontend)
+    $clean = $meetings->map(function ($m) use ($teacherId) {
+        return [
+            'id'            => $m->id,
+            'date'          => $m->date,
+            'day'           => \Carbon\Carbon::parse($m->date)->format('l'),
+            'time'          => $m->time,
+            'course_alias'  => $m->course->alias ?? null,
+            'location'      => $m->location,
+            'is_canceled'   => (bool) $m->is_canceled,
+            'teacher'       => $m->teacher->name ?? null,
+            'original_teacher' => $m->originalTeacher->name ?? null,
+            'is_replacement' => $m->original_teacher_id 
+                                    ? ($m->original_teacher_id != $m->teacher_id)
+                                    : false,
+        ];
+    });
+
+    return response()->json([
+        'teacher_id' => $teacherId,
+        'type'       => $type,
+        'generated'  => now()->toDateTimeString(),
+        'count'      => $clean->count(),
+        'data'       => $clean
+    ]);
+}
+
+
     // Default resource methods (optional)
     public function index() {}
     public function create() {}
     public function store(Request $request) {}
-    public function show(string $id) {}
+    public function show(string $id) {
+            // get meeting by id
+            $meeting = Meeting::findOrFail($id);
+            return response()->json($meeting);
+    }
     public function edit(string $id) {}
     public function update(Request $request, string $id) {}
     public function destroy(string $id) {}
