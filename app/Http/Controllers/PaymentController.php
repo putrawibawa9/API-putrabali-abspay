@@ -103,7 +103,8 @@ public function store(PaymentRequest $request)
                 'course_id'      => $courseData['course_id'],
                 'payment_date'   => $courseData['payment_date'],
                 'payment_month'  => $courseData['payment_month'] ?? null,
-                'payment_year'   => $courseData['payment_year'], // ✅ BARU
+                // payment year pakai tahun sekarang kalau null
+                'payment_year'   => $courseData['payment_year'] ??  date('Y'),
                 'type'           => $courseData['type'],
                 'payment_amount' => $courseData['payment_amount'],
                 'user_id'        => $request->user_id ?? null,
