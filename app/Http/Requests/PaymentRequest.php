@@ -24,6 +24,7 @@ class PaymentRequest extends FormRequest
             $c['type']           = $c['type']           ?? '';
             $c['payment_date']   = $c['payment_date']   ?? null;
             $c['payment_month']  = ($c['payment_month'] ?? '') === '' ? null : $c['payment_month'];
+            $c['payment_year'] = date('Y', strtotime($c['payment_date']));
             $c['payment_amount'] = isset($c['payment_amount']) && $c['payment_amount'] !== ''
                 ? (int) $c['payment_amount'] : null;
 
@@ -58,6 +59,7 @@ class PaymentRequest extends FormRequest
     $rules = [
         'student_id' => 'required|exists:students,id',
         'courses'    => 'required|array|min:1',
+'courses.*.payment_year' => 'required|integer',
 
         'courses.*.course_id'     => 'required|exists:courses,id',
         'courses.*.payment_date'  => 'required|date',

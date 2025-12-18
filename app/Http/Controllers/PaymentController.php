@@ -80,31 +80,30 @@ public function store(PaymentRequest $request)
     // Ambil data yang SUDAH difilter & tervalidasi oleh PaymentRequest
     $validated  = $request->validated();
     $studentId  = $validated['student_id'];
-    $courses    = $validated['courses']; // hanya item yang dibayar (payment_amount > 0)
+    $courses    = $validated['courses'];
 
-    // Kalau ternyata kosong (mis. semua item amount-nya null/0), PaymentRequest sudah akan gagal.
-    // Tapi untuk berjaga-jaga:
     if (empty($courses)) {
         return response()->json([
             'message' => 'Tidak ada pembayaran yang valid.',
         ], 422);
     }
 
-    // Jalankan atomic transaction
     DB::transaction(function () use ($courses, $studentId, $request) {
         foreach ($courses as $courseData) {
+
             // Normalisasi tarif untuk jenis tertentu
             if (in_array($courseData['type'], ['modul', 'pendaftaran', 'ujian'], true)) {
                 $courseData['payment_amount'] = 50000;
                 $courseData['payment_month']  = null;
             }
 
-            // 1) Simpan Payment
+            // 1) Simpan Payment (⬅️ TAMBAH payment_year)
             $payment = Payment::create([
                 'student_id'     => $studentId,
                 'course_id'      => $courseData['course_id'],
                 'payment_date'   => $courseData['payment_date'],
                 'payment_month'  => $courseData['payment_month'] ?? null,
+                'payment_year'   => $courseData['payment_year'], // ✅ BARU
                 'type'           => $courseData['type'],
                 'payment_amount' => $courseData['payment_amount'],
                 'user_id'        => $request->user_id ?? null,
@@ -113,18 +112,23 @@ public function store(PaymentRequest $request)
 
             // 2) Tentukan kategori keuangan & catatan
             if ($courseData['type'] === 'spp') {
-                $category = FinanceCategory::where('code', 'P001')->first(); // SPP
-                $note     = 'Pembayaran SPP untuk bulan ' . ($courseData['payment_month'] ?? '-') .
-                            ' - Kursus ID: ' . $courseData['course_id'];
+                $category = FinanceCategory::where('code', 'P001')->first();
+                $note = 'Pembayaran SPP bulan ' .
+                        ($courseData['payment_month'] ?? '-') .
+                        ' ' . $courseData['payment_year'] .
+                        ' - Kursus ID: ' . $courseData['course_id'];
             } elseif ($courseData['type'] === 'modul') {
-                $category = FinanceCategory::where('code', 'P002')->first(); // Modul
-                $note     = 'Pembayaran Modul - Kursus ID: ' . $courseData['course_id'];
+                $category = FinanceCategory::where('code', 'P002')->first();
+                $note = 'Pembayaran Modul ' .
+                        $courseData['payment_year'] .
+                        ' - Kursus ID: ' . $courseData['course_id'];
             } else {
-                $category = FinanceCategory::where('code', 'P003')->first(); // Ujian/Pendaftaran
-                $note     = 'Pembayaran Ujian / Pendaftaran - Kursus ID: ' . $courseData['course_id'];
+                $category = FinanceCategory::where('code', 'P003')->first();
+                $note = 'Pembayaran Ujian / Pendaftaran ' .
+                        $courseData['payment_year'] .
+                        ' - Kursus ID: ' . $courseData['course_id'];
             }
 
-            // *Guard* kalau kategori tidak ditemukan (lebih aman daripada nge-null error)
             if (!$category) {
                 throw new \RuntimeException(
                     'Kategori keuangan tidak ditemukan untuk type: ' . $courseData['type']
@@ -139,8 +143,7 @@ public function store(PaymentRequest $request)
                 'note'                => $note,
             ]);
 
-            // 4) (Opsional) Aktifkan partisipasi per-kelas setelah ada pembayaran
-            // Abaikan jika kamu tidak punya kolom is_active
+            // 4) Aktifkan course
             StudentCourse::where('student_id', $studentId)
                 ->where('course_id', $courseData['course_id'])
                 ->update(['is_active' => true]);
@@ -148,10 +151,11 @@ public function store(PaymentRequest $request)
     });
 
     return response()->json([
-        'message' => 'Payments saved successfully!',
+        'message'   => 'Payments saved successfully!',
         'processed' => count($courses),
     ], 201);
 }
+
 
 
 

@@ -15,6 +15,7 @@ class Payment extends Model
         'payment_date',
         'payment_month',
         'type',
+        'payment_year',
         'payment_amount',
         'user_id', // Added user_id to fillable attributes
         'teacher_id', // Added teacher_id to fillable attributes
