@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers\Schedule;
 
+use Carbon\Carbon;
 use App\Models\Course;
 use App\Models\Meeting;
-use App\Models\Teacher;
 
+use App\Models\Student;
+use App\Models\Teacher;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Schedule\ChangeDateRequest;
@@ -40,14 +42,14 @@ class ScheduleController extends Controller
             }
 
             $daySchedule = $req->schedule[$dayName];
-
+// dd($daySchedule);
             Meeting::create([
                 'course_id'  => $course->id,
                 'day'        => $dayName,
                 'date'       => $date->format('Y-m-d'),
                 'time'       => $daySchedule['time'],
                 'teacher_id' => $daySchedule['teacher_id'],
-                'location'   => $daySchedule['location'] ?? null,
+                'location'   => $daySchedule['location'],
             ]);
 
             $count++;
@@ -210,6 +212,53 @@ public function teacherSchedule(Request $req)
         'generated'  => now()->toDateTimeString(),
         'count'      => $clean->count(),
         'data'       => $clean
+    ]);
+}
+
+
+public function getStudentSchedule(Request $req)
+{
+    $req->validate([
+        'student_id' => 'required|exists:students,id',
+    ]);
+
+    $today = Carbon::today()->toDateString();
+
+    // 1. Ambil student + course yang diikuti
+    $student = Student::with('courses:id,alias')
+        ->findOrFail($req->student_id);
+
+    $courseIds = $student->courses->pluck('id')->toArray();
+
+    // 2. Ambil meeting dari course tersebut (future only)
+    $meetings = Meeting::with([
+            'course:id,alias',
+            'teacher:id,name'
+        ])
+        ->whereIn('course_id', $courseIds)
+        ->where('date', '>=', $today)
+        ->where('is_canceled', false)
+        ->orderBy('date', 'asc')
+        ->orderBy('time', 'asc')
+        ->get();
+
+    // 3. Transform agar frontend-friendly
+    $schedule = $meetings->map(function ($m) {
+        return [
+            'date'          => $m->date,
+            'day'           => Carbon::parse($m->date)->format('l'),
+            'time'          => $m->time,
+            'course_alias'  => $m->course->alias ?? null,
+            'teacher'       => $m->teacher->name ?? null,
+            'location'      => $m->location,
+        ];
+    });
+
+    return response()->json([
+        'student_id' => $student->id,
+        'generated'  => now()->toDateTimeString(),
+        'count'      => $schedule->count(),
+        'schedule'   => $schedule
     ]);
 }
 

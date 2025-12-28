@@ -14,6 +14,7 @@ Route::prefix('v1/scheduling')->group(function () {
   Route::get('/meeting/{id}', [NewScheduleController::class, 'show']);
 
   Route::get('/schedule', [NewScheduleController::class, 'teacherSchedule']);
+  Route::get('/student', [NewScheduleController::class, 'getStudentSchedule']);
 
     
     // Route::get('/teacher/schedule', [MeetingController::class, 'teacherSchedule']);

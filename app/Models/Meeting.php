@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class Meeting extends Model
 {
     use HasFactory;
-    protected $fillable = ['course_id', 'teacher_id', 'day', 'date', 'time'];
+    protected $fillable = ['course_id', 'teacher_id', 'day', 'date', 'time', 'location'];
 
      // A meeting belongs to a course
     public function course()
