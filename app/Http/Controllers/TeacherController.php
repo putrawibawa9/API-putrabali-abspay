@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use DateTime;
+use App\Models\Meeting;
 use App\Models\Teacher;
 use App\Models\RepostProof;
 use Illuminate\Http\Request;
@@ -162,10 +163,11 @@ class TeacherController extends Controller
         [$year, $month] = explode('-', $input);
     }
 
-    // Get teacher with filtered meetings and their course
+    // Get teacher with  absences and their course
     $teacher = Teacher::with(['meetings' => function ($query) use ($month, $year) {
         $query->whereMonth('date', $month)
               ->whereYear('date', $year)
+              ->where('date', '<', now()) // 🔥 INI KUNCINYA
               ->orderBy('created_at', 'desc')
               ->with('course');
     }])->findOrFail($request->id);
@@ -185,6 +187,9 @@ class TeacherController extends Controller
         'year' => $year,
     ]);
 }
+
+
+
 
 
 }
