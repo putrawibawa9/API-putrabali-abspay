@@ -163,10 +163,11 @@ class TeacherController extends Controller
         [$year, $month] = explode('-', $input);
     }
 
-    // Get teacher with filtered meetings and their course
+    // Get teacher with  absences and their course
     $teacher = Teacher::with(['meetings' => function ($query) use ($month, $year) {
         $query->whereMonth('date', $month)
               ->whereYear('date', $year)
+              ->where('date', '<', now()) // 🔥 INI KUNCINYA
               ->orderBy('created_at', 'desc')
               ->with('course');
     }])->findOrFail($request->id);
