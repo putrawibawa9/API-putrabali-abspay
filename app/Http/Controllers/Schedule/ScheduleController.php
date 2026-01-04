@@ -265,6 +265,8 @@ public function getStudentSchedule(Request $req)
 
 public function getAllSchedules(Request $request)
 {
+
+    
     // ------------------------------------
     // A. VALIDASI INPUT
     // ------------------------------------
@@ -284,6 +286,12 @@ public function getAllSchedules(Request $request)
     ])
     ->orderBy('date', 'asc')
     ->orderBy('time', 'asc');
+
+    // ------------------------------------
+// B.1 FILTER: SCHEDULE = BELUM TERJADI
+// ------------------------------------
+$today = Carbon::today()->toDateString();
+$query->where('date', '>=', $today);
 
     // ------------------------------------
     // C. FILTER: GURU
