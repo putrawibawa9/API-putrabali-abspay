@@ -263,6 +263,91 @@ public function getStudentSchedule(Request $req)
 }
 
 
+public function getAllSchedules(Request $request)
+{
+    // ------------------------------------
+    // A. VALIDASI INPUT
+    // ------------------------------------
+    $request->validate([
+        'teacher_id' => 'nullable|exists:teachers,id',
+        'start_date' => 'nullable|date',
+        'end_date'   => 'nullable|date|after_or_equal:start_date',
+    ]);
+
+    // ------------------------------------
+    // B. QUERY DASAR
+    // ------------------------------------
+    $query = Meeting::with([
+        'course:id,alias',
+        'teacher:id,name',
+       
+    ])
+    ->orderBy('date', 'asc')
+    ->orderBy('time', 'asc');
+
+    // ------------------------------------
+    // C. FILTER: GURU
+    // ------------------------------------
+    if ($request->filled('teacher_id')) {
+        $teacherId = $request->teacher_id;
+
+        $query->where(function ($q) use ($teacherId) {
+            $q->where('teacher_id', $teacherId);
+             
+        });
+    }
+
+    // ------------------------------------
+    // D. FILTER: START DATE
+    // ------------------------------------
+    if ($request->filled('start_date')) {
+        $query->where('date', '>=', $request->start_date);
+    }
+
+    // ------------------------------------
+    // E. FILTER: END DATE
+    // ------------------------------------
+    if ($request->filled('end_date')) {
+        $query->where('date', '<=', $request->end_date);
+    }
+
+    // ------------------------------------
+    // F. EKSEKUSI QUERY
+    // ------------------------------------
+    $meetings = $query->get();
+
+    // ------------------------------------
+    // G. TRANSFORM RESPONSE (frontend-friendly)
+    // ------------------------------------
+    $data = $meetings->map(function ($m) {
+        return [
+            'id'              => $m->id,
+            'date'            => $m->date,
+            'day'             => Carbon::parse($m->date)->format('l'),
+            'time'            => $m->time,
+            'course_alias'    => $m->course->alias ?? null,
+            'teacher'         => $m->teacher->name ?? null,
+            'original_teacher'=> $m->originalTeacher->name ?? null,
+            'is_replacement'  => $m->original_teacher_id 
+                                  && $m->original_teacher_id != $m->teacher_id,
+            'location'        => $m->location,
+            'is_canceled'     => (bool) $m->is_canceled,
+        ];
+    });
+
+    return response()->json([
+        'filters' => [
+            'teacher_id' => $request->teacher_id,
+            'start_date' => $request->start_date,
+            'end_date'   => $request->end_date,
+        ],
+        'count' => $data->count(),
+        'data'  => $data,
+    ]);
+}
+
+
+
     // Default resource methods (optional)
     public function index() {}
     public function create() {}
