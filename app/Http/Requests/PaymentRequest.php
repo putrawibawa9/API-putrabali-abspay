@@ -85,16 +85,7 @@ class PaymentRequest extends FormRequest
                                  ->where('payment_year', $c['payment_year']);
                     });
 
-            } else {
-
-                // UNIQUE non-SPP (tanpa month & year)
-                $rules["courses.$i.course_id"][] = Rule::unique('payments')
-                    ->where(function ($q) use ($c) {
-                        return $q->where('student_id', $this->input('student_id'))
-                                 ->where('course_id', $c['course_id'])
-                                 ->where('type', $c['type']);
-                    });
-            }
+            } 
         }
 
         return $rules;
