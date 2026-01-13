@@ -167,31 +167,41 @@ class MeetingController extends Controller
             
     }
 
-   public function dailyRecap(Request $request)
+  public function dailyRecap(Request $request)
 {
     // Ambil parameter tanggal atau gunakan default
     $startDate = $request->query('start_date', now()->format('Y-m-d'));
-    $endDate = $request->query('end_date', $startDate); // jika tidak ada end_date, pakai start_date
+    $endDate   = $request->query('end_date', $startDate);
 
     $teacherId = $request->query('teacher_id');
+    $lokasiPb  = $request->query('lokasi_pb');
 
-    // Query dasar
-   // Query dasar + urut terbaru dulu (tanggal & jam)
-$query = Meeting::with(['course', 'teacher'])
-    ->whereBetween('date', [$startDate, $endDate])
-    ->latest(); // = orderBy('created_at','desc')
+    $today = now()->toDateString();
 
+    // ==========================
+    // QUERY: HANYA ABSEN GURU
+    // ==========================
+    $query = Meeting::with(['course', 'teacher'])
+        ->whereBetween('date', [$startDate, $endDate])
+        ->where('date', '<=', $today) // 🔑 PENTING: bukan jadwal
+        ->latest();
 
-
-    // Filter guru jika ada
+    // Filter guru
     if ($teacherId) {
         $query->where('teacher_id', $teacherId);
     }
 
-    // Eksekusi query
+    // Filter lokasi PB
+    if ($lokasiPb) {
+        $query->whereHas('course', function ($q) use ($lokasiPb) {
+            $q->where('lokasi_pb', (int) $lokasiPb);
+        });
+    }
+
+    // Eksekusi
     $meetings = $query->get();
 
-    // Transformasi data
+    // Transformasi data (TETAP)
     $meetingsData = $meetings->map(function ($meeting) {
         return [
             'id' => $meeting->id,
@@ -208,6 +218,7 @@ $query = Meeting::with(['course', 'teacher'])
 
     return response()->json($meetingsData);
 }
+
 
 
 
