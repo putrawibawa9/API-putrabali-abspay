@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Course;
 use Illuminate\Http\Request;
 use App\Http\Requests\CourseRequest;
-use App\Http\Requests\StoreCourseRequest;
+use App\Http\Requests\StoourseRequest;
 use Illuminate\Support\Facades\Validator;
 use App\Http\Requests\UpdateCourseRequest;
 

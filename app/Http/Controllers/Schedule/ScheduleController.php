@@ -272,6 +272,8 @@ public function getAllSchedules(Request $request)
     // ------------------------------------
     $request->validate([
         'teacher_id' => 'nullable|exists:teachers,id',
+            'course_id'  => 'nullable|exists:courses,id',
+
         'start_date' => 'nullable|date',
         'end_date'   => 'nullable|date|after_or_equal:start_date',
     ]);
@@ -304,6 +306,13 @@ $query->where('date', '>=', $today);
              
         });
     }
+    // ------------------------------------
+// C.1 FILTER: KELAS / COURSE
+// ------------------------------------
+if ($request->filled('course_id')) {
+    $query->where('course_id', $request->course_id);
+}
+
 
     // ------------------------------------
     // D. FILTER: START DATE
@@ -347,6 +356,7 @@ $query->where('date', '>=', $today);
         'filters' => [
             'teacher_id' => $request->teacher_id,
             'start_date' => $request->start_date,
+              'course_id'  => $request->course_id,
             'end_date'   => $request->end_date,
         ],
         'count' => $data->count(),

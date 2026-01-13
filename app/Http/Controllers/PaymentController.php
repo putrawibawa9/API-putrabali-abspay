@@ -342,9 +342,9 @@ public function paymentRecap(Request $request)
 
 
 
- public function dailyRecap(Request $request)
+public function dailyRecap(Request $request)
 {
-    // VALIDASI SEDERHANA (opsional tapi disarankan)
+    // VALIDASI (ditambah lokasi_pb)
     $request->validate([
         'start_date'    => 'sometimes|date',
         'end_date'      => 'sometimes|date',
@@ -352,30 +352,35 @@ public function paymentRecap(Request $request)
         'course_id'     => 'sometimes|array',
         'course_id.*'   => 'integer',
         'user_id'       => 'sometimes|integer|nullable',
+        'lokasi_pb'     => 'sometimes|integer|nullable', // ✅ tambahan
     ]);
 
-    // Ambil dari body (POST JSON / form), bukan query()
-    $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->toDateString());
-    // Kalau end_date kosong, pakai startDate (sesuai komentar aslimu)
-    $endDate   = $request->input('end_date', $startDate);
+    $startDate = $request->input(
+        'start_date',
+        Carbon::now()->startOfMonth()->toDateString()
+    );
 
-    // Normalisasi course_id -> array bersih
+    $endDate = $request->input('end_date', $startDate);
+
+    // Normalisasi course_id
     $courseIds = collect($request->input('course_id', []))
-        ->filter(fn($v) => $v !== null && $v !== '' )
-        ->map(fn($v) => (int) $v)
+        ->filter(fn ($v) => $v !== null && $v !== '')
+        ->map(fn ($v) => (int) $v)
         ->values()
         ->all();
 
-    // Eager load relasi yang dipakai di map (hindari N+1)
+    // ===============================
+    // QUERY UTAMA (LOGIKA TETAP)
+    // ===============================
     $query = Payment::with(['student', 'course', 'user', 'teacher'])
         ->whereBetween('payment_date', [$startDate, $endDate]);
 
-    // payment_month (pakai filled biar '' nggak ikut ngefilter)
+    // payment_month
     if ($request->filled('payment_month')) {
         $query->where('payment_month', $request->input('payment_month'));
     }
 
-    // course_id (skip kalau kosong)
+    // course_id
     if (!empty($courseIds)) {
         $query->whereIn('course_id', $courseIds);
     }
@@ -385,12 +390,23 @@ public function paymentRecap(Request $request)
         $query->where('user_id', (int) $request->input('user_id'));
     }
 
-    // Urutkan berdasarkan payment_date (kamu filter pakai payment_date, jangan latest() default created_at)
+    // ===============================
+    // 🔹 FILTER BARU: lokasi_pb
+    // ===============================
+    if ($request->filled('lokasi_pb')) {
+        $lokasiPb = (int) $request->input('lokasi_pb');
+
+        $query->whereHas('course', function ($q) use ($lokasiPb) {
+            $q->where('lokasi_pb', $lokasiPb);
+        });
+    }
+
+    // Urutan tetap
     $payments = $query->orderByDesc('created_at')->get();
 
     $totalPaymentAmount = $payments->sum('payment_amount');
 
-    // Konsisten: kirimkan payment_date dari kolom payment_date (bukan created_at)
+    // Mapping response (TIDAK diubah)
     $paymentsData = $payments->map(function ($payment) {
         return [
             'id'             => $payment->id,
@@ -401,7 +417,8 @@ public function paymentRecap(Request $request)
             'course_alias'   => optional($payment->course)->alias,
             'course_id'      => optional($payment->course)->id,
             'payment_amount' => $payment->payment_amount,
-            'payment_date'   => optional($payment->payment_date)->format('Y-m-d') ?? $payment->payment_date, // jika kolom date sudah string
+            'payment_date'   => optional($payment->payment_date)->format('Y-m-d')
+                                ?? $payment->payment_date,
             'admin_name'     => optional($payment->user)->name
                                 ?? optional($payment->teacher)->name
                                 ?? 'Admin PB',
@@ -411,14 +428,19 @@ public function paymentRecap(Request $request)
     return response()->json([
         'total_payment' => $totalPaymentAmount,
         'payments'      => $paymentsData,
-        'range'         => ['start_date' => $startDate, 'end_date' => $endDate],
+        'range'         => [
+            'start_date' => $startDate,
+            'end_date'   => $endDate,
+        ],
         'filters'       => [
             'payment_month' => $request->input('payment_month'),
             'course_id'     => $courseIds,
             'user_id'       => $request->input('user_id'),
+            'lokasi_pb'     => $request->input('lokasi_pb'), // ✅ echo filter
         ],
     ]);
 }
+
     
 public function changeDate(Request $request){
     $paymentId = $request->payment_id;
