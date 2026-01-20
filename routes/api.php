@@ -45,6 +45,7 @@ Route::prefix('v1')->group(function () {
         Route::resource('/meetings', MeetingController::class);
         Route::resource('/absences', AbsenceController::class);
         Route::get('/courses-search', [CourseController::class, 'search']);
+        Route::get('/courses/{id}/students', [CourseController::class, 'getStudentsByCourseId']);
         Route::get('/students-search', [StudentController::class, 'search']);
         Route::get('/teachers-search', [TeacherController::class, 'search'])->name('teachers.search');
         Route::get('/student/payment/{id}', [PaymentController::class, 'getStudentPayment']);

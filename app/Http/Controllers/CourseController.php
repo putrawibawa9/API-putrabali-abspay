@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Course;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use App\Http\Requests\CourseRequest;
 use App\Http\Requests\StoourseRequest;
 use Illuminate\Support\Facades\Validator;
@@ -224,6 +225,21 @@ public function courseFilter(Request $request)
     });
 
     return response()->json($courses);
+}
+
+public function getStudentsByCourseId(int $courseId)
+{
+    return DB::table('students_courses as sc')
+        ->join('students as s', 's.id', '=', 'sc.student_id')
+        ->where('sc.course_id', $courseId)
+        ->where('sc.is_active', 1)
+        ->select(
+            's.id as student_id',
+            's.name',
+            'sc.id as students_courses_id'
+        )
+        ->orderBy('s.name')
+        ->get();
 }
 
 
