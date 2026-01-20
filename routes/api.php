@@ -67,6 +67,8 @@ Route::prefix('v1')->group(function () {
         Route::get('/monthly/enrolled/student', [StudentController::class, 'monthlyEnrolledStudent']);
         Route::get('/monthly/payment/student', [PaymentController::class, 'monthlyPaymentStudent']);
         Route::get('/student/absences/history/{id}',  [AbsenceController::class, 'getAbsenceHistory']);
+        Route::get('/classes/{id}/attendance',  [AbsenceController::class, 'monthlyAttendance']);
+
         Route::post('/students/monthly-paid-unpaid',  [PaymentController::class, 'paidAndUnpaidStudentsMonthly']);
         Route::post('/course/monthly/meetings',  [MeetingController::class, 'courseMeetingsbyMonth']);
         Route::get('/recap-teacher-absences' , [TeacherController::class, 'recapTeacherAbsences']);

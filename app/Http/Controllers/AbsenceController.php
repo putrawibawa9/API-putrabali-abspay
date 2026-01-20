@@ -10,6 +10,7 @@ use App\Models\Student;
 use App\Models\FinanceEntry;
 use Illuminate\Http\Request;
 use App\Models\FinanceCategory;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Http\Requests\AbsenceRequest;
 use App\Http\Resources\MeetingResource;
@@ -83,7 +84,75 @@ public function store(AbsenceRequest $request)
 
     }
 
+public function monthlyAttendance(Request $request, $courseId)
+{
+    $month = (int) $request->query('month');
+    $year  = (int) $request->query('year');
 
+    if (!$month || !$year) {
+        return response()->json([
+            'message' => 'month dan year wajib diisi'
+        ], 422);
+    }
+
+    $start = Carbon::create($year, $month, 1)->startOfMonth();
+    $end   = Carbon::create($year, $month, 1)->endOfMonth();
+
+    /** ------------------------------------------------
+     * TOTAL PERTEMUAN DALAM BULAN (PER KELAS)
+     * ------------------------------------------------ */
+    $totalMeetings = DB::table('meetings')
+        ->where('course_id', $courseId)
+        ->whereBetween('date', [$start, $end])
+        ->count();
+
+    /** ------------------------------------------------
+     * REKAP ABSENSI PER SISWA
+     * ------------------------------------------------ */
+    $students = DB::table('students_courses as sc')
+    ->join('students as s', 's.id', '=', 'sc.student_id')
+    ->leftJoin('meetings as m', function ($join) use ($courseId, $start, $end) {
+        $join->on('m.course_id', '=', 'sc.course_id')
+             ->where('m.course_id', $courseId)
+             ->whereBetween('m.date', [$start, $end]);
+    })
+    ->leftJoin('absences as a', function ($join) {
+        $join->on('a.meeting_id', '=', 'm.id')
+             ->on('a.students_courses_id', '=', 'sc.id');
+    })
+    ->where('sc.course_id', $courseId)
+    ->select(
+        's.id as student_id',
+        's.name',
+        DB::raw("COUNT(m.id) as total_meetings"),
+        DB::raw("SUM(a.status = 'present') as present"),
+        DB::raw("SUM(a.status = 'absent') as absent")
+    )
+    ->groupBy('s.id', 's.name')
+    ->get()
+    ->map(function ($s) {
+        $rate = $s->total_meetings > 0
+            ? ($s->present / $s->total_meetings) * 100
+            : 0;
+
+        return [
+            'student_id'      => $s->student_id,
+            'name'            => $s->name,
+            'present'         => (int) $s->present,
+            'absent'          => (int) $s->absent,
+            'attendance_rate' => round($rate, 2),
+            'status'          => $rate >= 30 ? 'aktif' : 'tidak aktif'
+        ];
+    });
+
+    return response()->json([
+        'course_id'      => $courseId,
+        'month'          => $month,
+        'year'           => $year,
+        'total_meetings' => $totalMeetings,
+        'students'       => $students
+    ]);
+}
     /**
      * Show the form for editing the specified resource.
      */
