@@ -352,6 +352,7 @@ public function dailyRecap(Request $request)
         'course_id'     => 'sometimes|array',
         'course_id.*'   => 'integer',
         'user_id'       => 'sometimes|integer|nullable',
+         'teacher_id'    => 'sometimes|integer|nullable', // ✅ tambah
         'lokasi_pb'     => 'sometimes|integer|nullable', // ✅ tambahan
     ]);
 
@@ -400,6 +401,13 @@ public function dailyRecap(Request $request)
             $q->where('lokasi_pb', $lokasiPb);
         });
     }
+
+    // ===============================
+// 🔹 FILTER BARU: teacher_id
+// ===============================
+if ($request->filled('teacher_id')) {
+    $query->where('teacher_id', (int) $request->input('teacher_id'));
+}
 
     // Urutan tetap
     $payments = $query->orderByDesc('created_at')->get();
