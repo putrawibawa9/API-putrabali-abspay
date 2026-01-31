@@ -354,6 +354,7 @@ public function dailyRecap(Request $request)
         'user_id'       => 'sometimes|integer|nullable',
          'teacher_id'    => 'sometimes|integer|nullable', // ✅ tambah
         'lokasi_pb'     => 'sometimes|integer|nullable', // ✅ tambahan
+        'type'         => 'sometimes|string|in:spp,modul,pendaftaran,ujian',
     ]);
 
     $startDate = $request->input(
@@ -380,6 +381,11 @@ public function dailyRecap(Request $request)
     if ($request->filled('payment_month')) {
         $query->where('payment_month', $request->input('payment_month'));
     }
+
+    // type
+if ($request->filled('type')) {
+    $query->where('type', $request->input('type'));
+}
 
     // course_id
     if (!empty($courseIds)) {
@@ -442,6 +448,7 @@ if ($request->filled('teacher_id')) {
         ],
         'filters'       => [
             'payment_month' => $request->input('payment_month'),
+            'type'          => $request->input('type'),
             'course_id'     => $courseIds,
             'user_id'       => $request->input('user_id'),
             'lokasi_pb'     => $request->input('lokasi_pb'), // ✅ echo filter
