@@ -6,7 +6,7 @@ use App\Models\Course;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Http\Requests\CourseRequest;
-use App\Http\Requests\StoourseRequest;
+use App\Http\Requests\StoreCourseRequest;
 use Illuminate\Support\Facades\Validator;
 use App\Http\Requests\UpdateCourseRequest;
 
