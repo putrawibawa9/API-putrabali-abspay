@@ -34,6 +34,7 @@ class MeetingRequest extends FormRequest
         'date' => 'required|date',
         'time' => 'required|date_format:H:i',
         'teacher_id' => 'required|integer|exists:teachers,id',
+        'lesson_plan' => 'nullable|string',
     ];
     }
 }

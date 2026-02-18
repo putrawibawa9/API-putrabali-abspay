@@ -48,6 +48,7 @@ public function store(AbsenceRequest $request)
         'date' => $request->date,
         'time' => $request->time,
         'teacher_id' => $request->teacher_id,
+        'lesson_plan' => $request->lesson_plan,
     ]);
     $absences = [];
     foreach ($request->attendances as $attendance) {
