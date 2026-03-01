@@ -221,7 +221,34 @@ class MeetingController extends Controller
 
 
 
+public function lessonPlanHistory(Request $request)
+{
+    $request->validate([
+        'course_id' => 'required|exists:courses,id'
+    ]);
 
+    $lessonPlans = Meeting::with(['teacher:id,name'])
+        ->select('id', 'lesson_plan', 'teacher_id', 'course_id', 'created_at')
+        ->where('course_id', $request->course_id)
+        ->whereNotNull('lesson_plan')
+        ->orderByDesc('created_at')
+        ->get();
+
+    return response()->json([
+        'status' => true,
+        'message' => 'Lesson plan history retrieved successfully',
+        'data' => $lessonPlans->map(function ($meeting) {
+            return [
+                'meeting_id'   => $meeting->id,
+                'course_id'    => $meeting->course_id,
+                'teacher_id'   => $meeting->teacher_id,
+                'teacher_name' => $meeting->teacher->name ?? null,
+                'lesson_plan'  => $meeting->lesson_plan,
+                'created_at'   => $meeting->created_at->format('Y-m-d H:i:s'),
+            ];
+        })
+    ]);
+}
     
 
 }

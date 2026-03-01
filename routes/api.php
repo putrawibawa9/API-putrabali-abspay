@@ -131,6 +131,8 @@ Route::post('/changeDate', [PaymentController::class, 'changeDate']);
 
 
 Route::get('/students/{id}/monthly-payment', [CoursePriceController::class, 'getMonthlyCoursePricebyStudent']);
+
+Route::get('/lesson-plans', [MeetingController::class, 'lessonPlanHistory']);
 });
 
 require __DIR__.'/api_schedule.php';
