@@ -7,5 +7,7 @@ use Illuminate\Support\Facades\Schedule;
 Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote')->hourly();
-Schedule::command('salary:generate-family')->everyMinute();
+Schedule::command('salary:generate-family')
+    ->dailyAt('23:55')
+    ->when(fn () => now()->day <= 26);
 Schedule::command('backup:run')->dailyAt('02:00');
