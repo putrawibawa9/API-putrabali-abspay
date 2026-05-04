@@ -17,13 +17,17 @@ class FinanceEntryController extends Controller
     $except = ['K001', 'K017']; // daftar kode yang mau dikecualikan
 
     if ($id) {
-        $categories = FinanceCategory::with('financeEntries')
+        $categories = FinanceCategory::with([
+                'financeEntries' => fn ($q) => $q->orderByDesc('created_at')->orderByDesc('id'),
+            ])
             ->where('id', $id)
             ->whereNotIn('code', $except) // ✅ exclude banyak value
             ->where('type', 'expense')
             ->first();
     } else {
-        $categories = FinanceCategory::with('financeEntries')
+        $categories = FinanceCategory::with([
+                'financeEntries' => fn ($q) => $q->orderByDesc('created_at')->orderByDesc('id'),
+            ])
             ->where('type', 'expense')
             ->whereNotIn('code', $except) // ✅ exclude banyak value
             ->get();
@@ -46,6 +50,7 @@ class FinanceEntryController extends Controller
         if ($endDate) {
             $q->whereDate('created_at', '<=', $endDate);
         }
+        $q->orderByDesc('created_at')->orderByDesc('id');
     }]);
 
     if ($categoryId) {
@@ -105,17 +110,28 @@ class FinanceEntryController extends Controller
         $validated = $request->validate([
             'id' => 'sometimes|integer',
             'finance_category_id' => 'required|exists:finance_categories,id',
-            'direction' => 'required|string',
-            'amount' => 'required|numeric',
+            'direction' => 'required|string|in:income,expense',
+            'amount' => 'nullable|numeric|min:0|required_without_all:unit_price,quantity',
+            'item_name' => 'nullable|string|max:255|required_with:unit_price,quantity',
+            'unit_price' => 'nullable|numeric|min:0|required_with:item_name,quantity',
+            'quantity' => 'nullable|integer|min:1|required_with:item_name,unit_price',
             'note' => 'nullable|string',
             'created_at' => 'nullable|date',
             'updated_at' => 'nullable|date',
         ]);
 
+        $hasItemBreakdown = isset($validated['item_name'], $validated['unit_price'], $validated['quantity']);
+        $calculatedAmount = $hasItemBreakdown
+            ? (float) $validated['unit_price'] * (int) $validated['quantity']
+            : (float) $validated['amount'];
+
         $financeEntryData = [
             'finance_category_id' => $validated['finance_category_id'],
             'direction' => $validated['direction'],
-            'amount' => $validated['amount'],
+            'item_name' => $validated['item_name'] ?? null,
+            'unit_price' => $validated['unit_price'] ?? null,
+            'quantity' => $validated['quantity'] ?? null,
+            'amount' => $calculatedAmount,
             'note' => $validated['note'] ?? null,
         ];
         if (isset($validated['id'])) {
