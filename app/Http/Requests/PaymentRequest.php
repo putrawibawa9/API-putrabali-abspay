@@ -44,7 +44,8 @@ class PaymentRequest extends FormRequest
                     return is_numeric($c['payment_amount']);
                 }
 
-                return in_array($c['type'], ['modul','pendaftaran','ujian'], true);
+                return in_array($c['type'], ['modul','pendaftaran','ujian'], true)
+                    && is_numeric($c['payment_amount']);
             })
             ->values()
             ->all();
@@ -70,7 +71,7 @@ class PaymentRequest extends FormRequest
 
             if (($c['type'] ?? null) === 'spp') {
 
-                // SPP → month & year WAJIB
+                // SPP → amount, month, dan year wajib
                 $rules["courses.$i.payment_amount"] = ['required', 'integer'];
                 $rules["courses.$i.payment_month"]  = ['required', 'string'];
                 $rules["courses.$i.payment_year"]   = ['required', 'integer'];
@@ -85,7 +86,10 @@ class PaymentRequest extends FormRequest
                                  ->where('payment_year', $c['payment_year']);
                     });
 
-            } 
+            } elseif (in_array(($c['type'] ?? null), ['modul', 'pendaftaran', 'ujian'], true)) {
+                // Non-SPP tetap wajib kirim nominal, tapi month/year tetap null
+                $rules["courses.$i.payment_amount"] = ['required', 'integer', 'min:0'];
+            }
         }
 
         return $rules;
@@ -95,6 +99,8 @@ class PaymentRequest extends FormRequest
     {
         return [
             'courses.required' => 'Minimal ada 1 pembayaran yang valid.',
+            'courses.*.payment_amount.required' =>
+                'Nominal pembayaran wajib diisi.',
             'courses.*.payment_year.required' =>
                 'Tahun pembayaran wajib diisi untuk SPP.',
             'courses.*.course_id.unique' =>

@@ -91,9 +91,8 @@ public function store(PaymentRequest $request)
     DB::transaction(function () use ($courses, $studentId, $request) {
         foreach ($courses as $courseData) {
 
-            // Normalisasi tarif untuk jenis tertentu
+            // Non-SPP tetap pakai nominal dari request, hanya month yang dikosongkan
             if (in_array($courseData['type'], ['modul', 'pendaftaran', 'ujian'], true)) {
-                $courseData['payment_amount'] = 50000;
                 $courseData['payment_month']  = null;
             }
 
