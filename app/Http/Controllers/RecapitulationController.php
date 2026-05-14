@@ -52,6 +52,18 @@ $formatted = 'Rp ' . number_format($expectedIncome, 0, ',', '.');
     $totalEnrollStudentsInGivenMonth = Student::whereMonth('enroll_date', $month)
         ->whereYear('enroll_date', $year)
         ->count();  
+
+    $studentSourceBreakdown = Student::query()
+        ->selectRaw("COALESCE(NULLIF(TRIM(heard_from), ''), 'Tidak diketahui') as source_label")
+        ->selectRaw('COUNT(*) as total_students')
+        ->whereMonth('enroll_date', $month)
+        ->whereYear('enroll_date', $year)
+        ->groupBy('source_label')
+        ->orderByDesc('total_students')
+        ->orderBy('source_label')
+        ->get();
+
+    $topStudentSource = $studentSourceBreakdown->first();
     $totalTeachers = Teacher::count();
     $totalActiveCoursesPB1 = Course::where('is_active', 1)->where('lokasi_pb', 1)->count();
     $totalActiveCoursesPB2 = Course::where('is_active', 1)->where('lokasi_pb', 2)->count();
@@ -99,6 +111,8 @@ $formatted = 'Rp ' . number_format($expectedIncome, 0, ',', '.');
         'total_revenue' => $totalRevenue,
         'total_students_who_are_absent' => $persentageStudentWhoAreAbsent,
         'expected_income' => $formatted,
+        'student_source_breakdown' => $studentSourceBreakdown,
+        'top_student_source' => $topStudentSource,
     ]);
 }
 

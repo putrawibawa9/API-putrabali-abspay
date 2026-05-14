@@ -63,6 +63,13 @@ public function rules()
             'max:255'
         ],
 
+        'heard_from' => [
+            'sometimes',
+            'nullable',
+            'string',
+            'max:255',
+        ],
+
         // 🆕 Tambahan validasi untuk NIK dan NISN
         'nik' => [
             'sometimes',    // hanya divalidasi kalau dikirim di request
@@ -113,5 +120,4 @@ public function withValidator($validator)
 }
 
      
-
 

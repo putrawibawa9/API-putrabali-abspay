@@ -42,6 +42,7 @@ class StudentController extends Controller
     $student->wa_number = $studentRequest->wa_number;
     $student->gender = $studentRequest->gender;
     $student->school = $studentRequest->school;
+    $student->heard_from = $studentRequest->heard_from ?? null;
     $student->enroll_date = $studentRequest->enroll_date;
 
     // 🆕 Tambahan kolom baru
@@ -183,5 +184,4 @@ public function update(StudentRequest $request, Student $student)
 
 
 }
-
 

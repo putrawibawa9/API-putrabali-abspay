@@ -15,6 +15,7 @@ class Student extends Model
         'wa_number',
         'gender',
         'school',
+        'heard_from',
         'enroll_date',
         'nik',
         'nisn',
