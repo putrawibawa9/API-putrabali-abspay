@@ -15,8 +15,9 @@ class Course extends Model
         'subject',
         'alias',
         'payment_rate',
-           'lokasi_pb',
+        'lokasi_pb',
         'teaching_rate', // Added teaching_rate field
+        'default_teacher_id',
     ];
 
     public function meetings()
@@ -41,12 +42,13 @@ class Course extends Model
         return $this->hasMany(Payment::class);
     }
 
-     public function schedules()
+    public function schedules()
     {
         return $this->hasMany(Schedule::class);
     }
     
-    public function teacher(){
-        return $this->belongsTo(Teacher::class);
+    public function teacher()
+    {
+        return $this->belongsTo(Teacher::class, 'default_teacher_id');
     }
 }

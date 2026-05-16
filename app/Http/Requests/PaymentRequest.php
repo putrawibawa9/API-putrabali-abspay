@@ -57,6 +57,8 @@ class PaymentRequest extends FormRequest
     {
         $rules = [
             'student_id' => 'required|exists:students,id',
+            'user_id' => 'nullable|exists:users,id',
+            'teacher_id' => 'nullable|exists:teachers,id',
             'courses'    => 'required|array|min:1',
 
             'courses.*.course_id'      => 'required|exists:courses,id',

@@ -6,6 +6,11 @@ use App\Http\Controllers\MeetingController;
 
 // API UNTUK PENJADWALAN
 Route::prefix('v1/scheduling')->group(function () {
+    Route::get('/schedules', [NewScheduleController::class, 'indexRecurringSchedules']);
+    Route::post('/schedules', [NewScheduleController::class, 'storeRecurringSchedule']);
+    Route::get('/schedules/{schedule}', [NewScheduleController::class, 'showRecurringSchedule']);
+    Route::match(['put', 'patch'], '/schedules/{schedule}', [NewScheduleController::class, 'updateRecurringSchedule']);
+    Route::delete('/schedules/{schedule}', [NewScheduleController::class, 'destroyRecurringSchedule']);
 
     Route::post('/generateSemester', [NewScheduleController::class, 'generateSemester']);
   Route::post('/meeting/{meeting}/update', [NewScheduleController::class, 'updateMeeting']);

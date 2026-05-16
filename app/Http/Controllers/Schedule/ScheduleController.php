@@ -5,16 +5,18 @@ namespace App\Http\Controllers\Schedule;
 use Carbon\Carbon;
 use App\Models\Course;
 use App\Models\Meeting;
-
+use App\Models\Schedule;
 use App\Models\Student;
 use App\Models\Teacher;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Schedule\ChangeDateRequest;
-use App\Http\Requests\Schedule\ChangeTeacherRequest;
 use App\Http\Requests\Schedule\UpdateMeetingRequest;
 use App\Http\Requests\Schedule\GenerateSemesterRequest;
+use App\Http\Requests\Schedule\DeleteRecurringScheduleRequest;
 use App\Http\Requests\Schedule\ChangeRecurringScheduleRequest;
+use App\Http\Requests\Schedule\StoreRecurringScheduleRequest;
+use App\Http\Requests\Schedule\UpdateRecurringScheduleRequest;
 
 class ScheduleController extends Controller
 {
@@ -60,6 +62,149 @@ class ScheduleController extends Controller
             'created' => $count
         ]);
     }
+
+    public function indexRecurringSchedules(Request $request)
+    {
+        $request->validate([
+            'teacher_id' => ['nullable', 'exists:teachers,id'],
+            'course_id' => ['nullable', 'exists:courses,id'],
+            'is_active' => ['nullable', 'boolean'],
+            'frequency' => ['nullable', 'in:weekly,monthly'],
+        ]);
+
+        $query = Schedule::with(['course:id,alias', 'teacher:id,name'])
+            ->withCount(['meetings as future_meetings_count' => function ($q) {
+                $q->whereDate('date', '>=', now()->toDateString());
+            }])
+            ->orderByDesc('created_at');
+
+        if ($request->filled('teacher_id')) {
+            $query->where('teacher_id', $request->teacher_id);
+        }
+
+        if ($request->filled('course_id')) {
+            $query->where('course_id', $request->course_id);
+        }
+
+        if ($request->filled('is_active')) {
+            $query->where('is_active', $request->boolean('is_active'));
+        }
+
+        if ($request->filled('frequency')) {
+            $query->where('frequency', $request->frequency);
+        }
+
+        return response()->json($query->get());
+    }
+
+    public function storeRecurringSchedule(StoreRecurringScheduleRequest $request)
+    {
+        $validated = $request->validated();
+
+        [$schedule, $createdMeetings] = DB::transaction(function () use ($validated) {
+            $schedule = Schedule::create($validated);
+
+            $dates = $this->generateOccurrenceDates($schedule);
+            $this->assertScheduleConflicts(
+                schedule: $schedule,
+                dates: $dates,
+            );
+
+            $meetings = $this->createMeetingsFromSchedule($schedule, $dates);
+
+            return [$schedule->load(['course:id,alias', 'teacher:id,name']), $meetings];
+        });
+
+        return response()->json([
+            'message' => 'Recurring schedule created successfully.',
+            'schedule' => $schedule,
+            'created_meetings' => count($createdMeetings),
+        ], 201);
+    }
+
+    public function showRecurringSchedule(Schedule $schedule)
+    {
+        $schedule->load([
+            'course:id,alias',
+            'teacher:id,name',
+            'meetings' => fn ($q) => $q->orderBy('date')->orderBy('time'),
+        ]);
+
+        return response()->json($schedule);
+    }
+
+    public function updateRecurringSchedule(UpdateRecurringScheduleRequest $request, Schedule $schedule)
+    {
+        $validated = $request->validated();
+        $effectiveFrom = isset($validated['effective_from'])
+            ? Carbon::parse($validated['effective_from'])->toDateString()
+            : max(now()->toDateString(), $schedule->start_date->toDateString());
+        $regenerateFutureMeetings = $validated['regenerate_future_meetings'] ?? true;
+
+        $updatedSchedule = DB::transaction(function () use ($schedule, $validated, $effectiveFrom, $regenerateFutureMeetings) {
+            $schedule->fill(collect($validated)->except(['effective_from', 'regenerate_future_meetings'])->all());
+            $schedule->save();
+
+            if ($regenerateFutureMeetings) {
+                $dates = $this->generateOccurrenceDates($schedule, $effectiveFrom);
+                $this->assertScheduleConflicts(
+                    schedule: $schedule,
+                    dates: $dates,
+                    ignoreScheduleId: $schedule->id,
+                );
+
+                Meeting::where('schedule_id', $schedule->id)
+                    ->whereDate('date', '>=', $effectiveFrom)
+                    ->delete();
+
+                $this->createMeetingsFromSchedule($schedule, $dates);
+            }
+
+            return $schedule->fresh(['course:id,alias', 'teacher:id,name']);
+        });
+
+        return response()->json([
+            'message' => 'Recurring schedule updated successfully.',
+            'schedule' => $updatedSchedule,
+            'effective_from' => $effectiveFrom,
+        ]);
+    }
+
+    public function destroyRecurringSchedule(DeleteRecurringScheduleRequest $request, Schedule $schedule)
+    {
+        $validated = $request->validated();
+        $effectiveFrom = isset($validated['effective_from'])
+            ? Carbon::parse($validated['effective_from'])->toDateString()
+            : now()->toDateString();
+        $deleteFutureMeetings = $validated['delete_future_meetings'] ?? true;
+
+        $deletedMeetings = DB::transaction(function () use ($schedule, $effectiveFrom, $deleteFutureMeetings) {
+            $deletedMeetings = 0;
+
+            if ($deleteFutureMeetings) {
+                $deletedMeetings = Meeting::where('schedule_id', $schedule->id)
+                    ->whereDate('date', '>=', $effectiveFrom)
+                    ->delete();
+            }
+
+            $schedule->update([
+                'is_active' => false,
+                'end_date' => Carbon::parse($effectiveFrom)->subDay()->lt($schedule->start_date)
+                    ? $schedule->start_date
+                    : Carbon::parse($effectiveFrom)->subDay()->toDateString(),
+            ]);
+
+            return $deletedMeetings;
+        });
+
+        return response()->json([
+            'message' => 'Recurring schedule deactivated successfully.',
+            'schedule_id' => $schedule->id,
+            'deleted_future_meetings' => $deletedMeetings,
+            'effective_from' => $effectiveFrom,
+        ]);
+    }
+
 public function updateMeeting(UpdateMeetingRequest $request, Meeting $meeting)
 {
     $oldData = $meeting->only(['teacher_id', 'date', 'time', 'location', 'day']);
@@ -363,6 +508,128 @@ if ($request->filled('course_id')) {
         'data'  => $data,
     ]);
 }
+
+    private function generateOccurrenceDates(Schedule $schedule, ?string $fromDate = null): array
+    {
+        $start = Carbon::parse($fromDate ?? $schedule->start_date)->startOfDay();
+        $end = Carbon::parse($schedule->end_date)->startOfDay();
+
+        if ($start->gt($end) || !$schedule->is_active) {
+            return [];
+        }
+
+        if ($schedule->frequency === 'weekly') {
+            return $this->generateWeeklyDates($schedule, $start, $end);
+        }
+
+        return $this->generateMonthlyDates($schedule, $start, $end);
+    }
+
+    private function generateWeeklyDates(Schedule $schedule, Carbon $start, Carbon $end): array
+    {
+        $dates = [];
+        $cursor = $start->copy();
+
+        while ($cursor->lte($end)) {
+            if ($cursor->format('l') === $schedule->day_of_week) {
+                $dates[] = $cursor->toDateString();
+            }
+
+            $cursor->addDay();
+        }
+
+        return $dates;
+    }
+
+    private function generateMonthlyDates(Schedule $schedule, Carbon $start, Carbon $end): array
+    {
+        $dates = [];
+        $cursor = $start->copy()->startOfMonth();
+        $dayOfMonth = (int) $schedule->day_of_month;
+
+        while ($cursor->lte($end)) {
+            if ($dayOfMonth <= $cursor->daysInMonth) {
+                $candidate = $cursor->copy()->day($dayOfMonth);
+
+                if ($candidate->betweenIncluded($start, $end)) {
+                    $dates[] = $candidate->toDateString();
+                }
+            }
+
+            $cursor->addMonthNoOverflow()->startOfMonth();
+        }
+
+        return $dates;
+    }
+
+    private function assertScheduleConflicts(Schedule $schedule, array $dates, ?int $ignoreScheduleId = null): void
+    {
+        foreach ($dates as $date) {
+            $teacherConflict = Meeting::query()
+                ->where('teacher_id', $schedule->teacher_id)
+                ->whereDate('date', $date)
+                ->where('time', $schedule->time)
+                ->where('is_canceled', false)
+                ->when($ignoreScheduleId, fn ($q) => $q->where('schedule_id', '!=', $ignoreScheduleId))
+                ->exists();
+
+            if ($teacherConflict) {
+                abort(response()->json([
+                    'message' => "Guru sudah memiliki jadwal pada {$date} jam {$schedule->time}.",
+                ], 422));
+            }
+
+            $courseConflict = Meeting::query()
+                ->where('course_id', $schedule->course_id)
+                ->whereDate('date', $date)
+                ->where('time', $schedule->time)
+                ->where('is_canceled', false)
+                ->when($ignoreScheduleId, fn ($q) => $q->where('schedule_id', '!=', $ignoreScheduleId))
+                ->exists();
+
+            if ($courseConflict) {
+                abort(response()->json([
+                    'message' => "Kelas sudah memiliki jadwal pada {$date} jam {$schedule->time}.",
+                ], 422));
+            }
+
+            if ($schedule->location) {
+                $locationConflict = Meeting::query()
+                    ->where('location', $schedule->location)
+                    ->whereDate('date', $date)
+                    ->where('time', $schedule->time)
+                    ->where('is_canceled', false)
+                    ->when($ignoreScheduleId, fn ($q) => $q->where('schedule_id', '!=', $ignoreScheduleId))
+                    ->exists();
+
+                if ($locationConflict) {
+                    abort(response()->json([
+                        'message' => "Lokasi {$schedule->location} sudah dipakai pada {$date} jam {$schedule->time}.",
+                    ], 422));
+                }
+            }
+        }
+    }
+
+    private function createMeetingsFromSchedule(Schedule $schedule, array $dates): array
+    {
+        $meetings = [];
+
+        foreach ($dates as $date) {
+            $meetings[] = Meeting::create([
+                'schedule_id' => $schedule->id,
+                'course_id' => $schedule->course_id,
+                'teacher_id' => $schedule->teacher_id,
+                'day' => Carbon::parse($date)->format('l'),
+                'date' => $date,
+                'time' => $schedule->time,
+                'end_time' => $schedule->end_time,
+                'location' => $schedule->location,
+            ]);
+        }
+
+        return $meetings;
+    }
 
 
 

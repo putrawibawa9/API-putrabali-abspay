@@ -19,33 +19,49 @@ class PaymentController extends Controller
      * Display a listing of the resource.
      */
 
+    private function transformPaymentForResponse(Payment $payment): array
+    {
+        return [
+            'id' => $payment->id,
+            'student_id' => $payment->student_id,
+            'course_id' => $payment->course_id,
+            'type' => $payment->type,
+            'payment_amount' => $payment->payment_amount,
+            'payment_date' => $payment->payment_date,
+            'payment_month' => $payment->payment_month,
+            'payment_year' => $payment->payment_year,
+            'receipt_url' => route('payments.receipt', ['id' => $payment->id]),
+        ];
+    }
+
+    private function transformReceiptResponse(Payment $payment): array
+    {
+        return [
+            'id' => $payment->id,
+            'student_name' => $payment->student->name,
+            'student_nis' => $payment->student->nis ?? 'N/A',
+            'course_name' => $payment->course->alias ?? '-',
+            'type' => $payment->type,
+            'payment_month' => $payment->payment_month,
+            'amount' => $payment->payment_amount,
+            'date' => $payment->payment_date,
+            'time' => optional($payment->created_at)->format('H:i:s'),
+            'admin' => $payment->user->name ?? $payment->teacher->name ?? 'Admin PB',
+        ];
+    }
+
     public function generateReceipt($id)
     {
         // get payment with student name
         $payment = Payment::where('id', $id)
-            ->with(['student', 'course', 'user']) // Assuming 'user' is the admin who processed the payment
+            ->with(['student', 'course', 'user', 'teacher']) // Assuming 'user' is the admin who processed the payment
             ->first();
-        // 
 
         if (!$payment) {
             return response()->json(['error' => 'Payment not found'], 404);
         }
-      
-        // Generate receipt logic here
-        $receipt = [
-            'id' => $payment->id,
-            'student_name' => $payment->student->name,
-            'student_nis' => $payment->student->nis ?? 'N/A',
-            'type' => $payment->type,
-            'payment_month' => $payment->payment_month ?? '-',
-            'course_name' => $payment->course->alias,
-            'amount' => $payment->payment_amount,
-            'date' => $payment->payment_date,
-            'time' => $payment->created_at->format('H:i'),
-            'admin' => $payment->user->name ?? $payment->teacher->name ?? 'Admin PB',
-        ];
 
-        return response()->json($receipt);
+        return response()->json($this->transformReceiptResponse($payment));
     }
 
 
@@ -88,7 +104,9 @@ public function store(PaymentRequest $request)
         ], 422);
     }
 
-    DB::transaction(function () use ($courses, $studentId, $request) {
+    $createdPayments = DB::transaction(function () use ($courses, $studentId, $request) {
+        $createdPayments = [];
+
         foreach ($courses as $courseData) {
 
             // Non-SPP tetap pakai nominal dari request, hanya month yang dikosongkan
@@ -109,6 +127,8 @@ public function store(PaymentRequest $request)
                 'user_id'        => $request->user_id ?? null,
                 'teacher_id'     => $request->teacher_id ?? null,
             ]);
+
+            $createdPayments[] = $payment;
 
             // 2) Tentukan kategori keuangan & catatan
             if ($courseData['type'] === 'spp') {
@@ -148,10 +168,24 @@ public function store(PaymentRequest $request)
                 ->where('course_id', $courseData['course_id'])
                 ->update(['is_active' => true]);
         }
+
+        return $createdPayments;
     });
 
+    $createdPaymentIds = collect($createdPayments)->pluck('id');
+
+    $payments = Payment::with(['student', 'course', 'user', 'teacher'])
+        ->whereIn('id', $createdPaymentIds)
+        ->orderBy('id')
+        ->get()
+        ->map(fn (Payment $payment) => $this->transformPaymentForResponse($payment))
+        ->values();
+
     return response()->json([
+        'success' => true,
         'message'   => 'Payments saved successfully!',
+        'payment_ids' => $payments->pluck('id')->all(),
+        'payments' => $payments,
         'processed' => count($courses),
     ], 201);
 }
