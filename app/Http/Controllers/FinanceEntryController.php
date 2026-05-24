@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\FinanceCategory;
+use App\Models\FinanceEntry;
 
 class FinanceEntryController extends Controller
 {
@@ -157,7 +158,11 @@ class FinanceEntryController extends Controller
      */
     public function show(string $id)
     {
-        //
+        $financeEntry = FinanceEntry::findOrFail($id);
+
+        return response()->json([
+            'data' => $financeEntry,
+        ]);
     }
 
     /**
@@ -181,6 +186,25 @@ class FinanceEntryController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        $financeEntry = FinanceEntry::findOrFail($id);
+        $entrySnapshot = $financeEntry->only([
+            'id',
+            'finance_category_id',
+            'direction',
+            'item_name',
+            'unit_price',
+            'quantity',
+            'amount',
+            'note',
+            'created_at',
+        ]);
+
+        $financeEntry->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Finance entry deleted successfully.',
+            'deleted_entry' => $entrySnapshot,
+        ]);
     }
 }
